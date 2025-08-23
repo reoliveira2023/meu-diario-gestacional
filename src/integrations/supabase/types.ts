@@ -14,7 +14,285 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      baby_letters: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_private: boolean | null
+          letter_date: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_private?: boolean | null
+          letter_date?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_private?: boolean | null
+          letter_date?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      baby_names: {
+        Row: {
+          created_at: string
+          gender: string
+          id: string
+          is_favorite: boolean | null
+          meaning: string | null
+          name: string
+          notes: string | null
+          origin: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          gender: string
+          id?: string
+          is_favorite?: boolean | null
+          meaning?: string | null
+          name: string
+          notes?: string | null
+          origin?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          gender?: string
+          id?: string
+          is_favorite?: boolean | null
+          meaning?: string | null
+          name?: string
+          notes?: string | null
+          origin?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      family_members: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          invited_at: string | null
+          is_invited: boolean | null
+          joined_at: string | null
+          name: string
+          phone: string | null
+          relationship: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          invited_at?: string | null
+          is_invited?: boolean | null
+          joined_at?: string | null
+          name: string
+          phone?: string | null
+          relationship: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          invited_at?: string | null
+          is_invited?: boolean | null
+          joined_at?: string | null
+          name?: string
+          phone?: string | null
+          relationship?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      medical_records: {
+        Row: {
+          appointment_date: string | null
+          attachments: string[] | null
+          created_at: string
+          doctor_name: string | null
+          id: string
+          location: string | null
+          notes: string | null
+          results: string | null
+          title: string
+          type: string
+          user_id: string
+          week_number: number | null
+        }
+        Insert: {
+          appointment_date?: string | null
+          attachments?: string[] | null
+          created_at?: string
+          doctor_name?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          results?: string | null
+          title: string
+          type: string
+          user_id: string
+          week_number?: number | null
+        }
+        Update: {
+          appointment_date?: string | null
+          attachments?: string[] | null
+          created_at?: string
+          doctor_name?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          results?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+          week_number?: number | null
+        }
+        Relationships: []
+      }
+      mood_entries: {
+        Row: {
+          created_at: string
+          entry_date: string
+          id: string
+          mood: string
+          notes: string | null
+          symptoms: string[] | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_date?: string
+          id?: string
+          mood: string
+          notes?: string | null
+          symptoms?: string[] | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_date?: string
+          id?: string
+          mood?: string
+          notes?: string | null
+          symptoms?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          due_date: string | null
+          full_name: string | null
+          id: string
+          last_period_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          due_date?: string | null
+          full_name?: string | null
+          id?: string
+          last_period_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          due_date?: string | null
+          full_name?: string | null
+          id?: string
+          last_period_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      shopping_items: {
+        Row: {
+          category: string
+          created_at: string
+          custom_item: boolean | null
+          id: string
+          is_completed: boolean | null
+          is_essential: boolean | null
+          name: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          custom_item?: boolean | null
+          id?: string
+          is_completed?: boolean | null
+          is_essential?: boolean | null
+          name: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          custom_item?: boolean | null
+          id?: string
+          is_completed?: boolean | null
+          is_essential?: boolean | null
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      weight_records: {
+        Row: {
+          belly_circumference: number | null
+          created_at: string
+          id: string
+          notes: string | null
+          record_date: string
+          user_id: string
+          week_number: number
+          weight: number | null
+        }
+        Insert: {
+          belly_circumference?: number | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          record_date?: string
+          user_id: string
+          week_number: number
+          weight?: number | null
+        }
+        Update: {
+          belly_circumference?: number | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          record_date?: string
+          user_id?: string
+          week_number?: number
+          weight?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
