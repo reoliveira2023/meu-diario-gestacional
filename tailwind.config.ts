@@ -26,7 +26,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					soft: 'hsl(var(--primary-soft))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -52,6 +53,14 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Cores especiais do MaternaApp
+				maternal: {
+					pink: 'hsl(var(--maternal-pink))',
+					blue: 'hsl(var(--baby-blue))',
+					lavender: 'hsl(var(--soft-lavender))',
+					mint: 'hsl(var(--mint-green))',
+					peach: 'hsl(var(--warm-peach))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -62,6 +71,23 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				}
+			},
+			backgroundImage: {
+				'gradient-maternal': 'var(--gradient-maternal)',
+				'gradient-soft': 'var(--gradient-soft)',
+				'gradient-baby': 'var(--gradient-baby)'
+			},
+			boxShadow: {
+				'soft': 'var(--shadow-soft)',
+				'card': 'var(--shadow-card)',
+				'floating': 'var(--shadow-floating)'
+			},
+			transitionTimingFunction: {
+				'gentle': 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+				'bounce': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+			},
+			fontFamily: {
+				'rounded': ['Nunito', 'system-ui', 'sans-serif']
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

@@ -2,41 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* MaternaApp Design System - Acolhedor e delicado para gestantes
+Paleta emocional com tons pastel: rosé, lavanda, verde água
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Fundo suave e acolhedor */
+    --background: 350 15% 98%;
+    --foreground: 340 8% 25%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Cards com toque rosé suave */
+    --card: 350 25% 97%;
+    --card-foreground: 340 12% 20%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Popovers delicados */
+    --popover: 350 20% 98%;
+    --popover-foreground: 340 10% 25%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary: rosé maternal acolhedor */
+    --primary: 340 35% 75%;
+    --primary-foreground: 350 15% 98%;
+    --primary-soft: 340 25% 85%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary: lavanda suave */
+    --secondary: 280 20% 88%;
+    --secondary-foreground: 280 15% 30%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted: tons neutros com toque maternal */
+    --muted: 330 10% 94%;
+    --muted-foreground: 330 8% 50%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent: verde água sereno */
+    --accent: 180 25% 85%;
+    --accent-foreground: 180 20% 25%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Estados delicados */
+    --destructive: 0 50% 70%;
+    --destructive-foreground: 350 15% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Bordas suaves */
+    --border: 330 15% 90%;
+    --input: 330 12% 92%;
+    --ring: 340 35% 75%;
 
-    --radius: 0.5rem;
+    /* Cores especiais da gestação */
+    --maternal-pink: 340 35% 75%;
+    --baby-blue: 200 30% 85%;
+    --soft-lavender: 280 20% 88%;
+    --mint-green: 160 25% 85%;
+    --warm-peach: 20 35% 88%;
+    
+    /* Gradientes emocionais */
+    --gradient-maternal: linear-gradient(135deg, hsl(340 35% 75%), hsl(280 20% 88%));
+    --gradient-soft: linear-gradient(180deg, hsl(350 25% 97%), hsl(350 15% 98%));
+    --gradient-baby: linear-gradient(45deg, hsl(200 30% 85%), hsl(160 25% 85%));
+
+    /* Sombras acolhedoras */
+    --shadow-soft: 0 2px 20px -5px hsl(340 35% 75% / 0.15);
+    --shadow-card: 0 4px 25px -8px hsl(340 25% 65% / 0.12);
+    --shadow-floating: 0 8px 35px -10px hsl(340 30% 70% / 0.2);
+
+    /* Animações suaves */
+    --transition-gentle: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -56,33 +87,61 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Fundo escuro com toque maternal */
+    --background: 340 15% 8%;
+    --foreground: 350 15% 95%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    /* Cards em tom escuro suave */
+    --card: 340 10% 12%;
+    --card-foreground: 350 10% 92%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    /* Popovers escuros */
+    --popover: 340 12% 10%;
+    --popover-foreground: 350 12% 90%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Primary mantém o rosé maternal */
+    --primary: 340 35% 65%;
+    --primary-foreground: 340 15% 95%;
+    --primary-soft: 340 25% 75%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary em lavanda escura */
+    --secondary: 280 15% 20%;
+    --secondary-foreground: 280 10% 85%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    /* Muted em tons escuros */
+    --muted: 330 8% 15%;
+    --muted-foreground: 330 6% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent em verde água escuro */
+    --accent: 180 20% 18%;
+    --accent-foreground: 180 15% 85%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    /* Estados para modo escuro */
+    --destructive: 0 45% 55%;
+    --destructive-foreground: 350 15% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* Bordas escuras */
+    --border: 330 10% 18%;
+    --input: 330 8% 20%;
+    --ring: 340 35% 65%;
+
+    /* Cores especiais adaptadas */
+    --maternal-pink: 340 35% 65%;
+    --baby-blue: 200 25% 25%;
+    --soft-lavender: 280 15% 25%;
+    --mint-green: 160 20% 25%;
+    --warm-peach: 20 30% 25%;
+    
+    /* Gradientes para modo escuro */
+    --gradient-maternal: linear-gradient(135deg, hsl(340 35% 65%), hsl(280 15% 25%));
+    --gradient-soft: linear-gradient(180deg, hsl(340 10% 12%), hsl(340 15% 8%));
+    --gradient-baby: linear-gradient(45deg, hsl(200 25% 25%), hsl(160 20% 25%));
+
+    /* Sombras adaptadas */
+    --shadow-soft: 0 2px 20px -5px hsl(340 35% 65% / 0.3);
+    --shadow-card: 0 4px 25px -8px hsl(340 25% 55% / 0.2);
+    --shadow-floating: 0 8px 35px -10px hsl(340 30% 60% / 0.4);
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
