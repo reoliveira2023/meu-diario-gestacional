@@ -416,7 +416,6 @@ export type Database = {
           due_date: string | null
           full_name: string | null
           id: string
-          last_period_date: string | null
           updated_at: string
           user_id: string
         }
@@ -426,7 +425,6 @@ export type Database = {
           due_date?: string | null
           full_name?: string | null
           id?: string
-          last_period_date?: string | null
           updated_at?: string
           user_id: string
         }
@@ -436,7 +434,6 @@ export type Database = {
           due_date?: string | null
           full_name?: string | null
           id?: string
-          last_period_date?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -472,6 +469,42 @@ export type Database = {
           is_essential?: boolean | null
           name?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          stripe_customer_id: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

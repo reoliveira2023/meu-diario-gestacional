@@ -44,7 +44,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header com logout */}
+      {/* Header melhorado */}
       <div className="bg-gradient-maternal px-2 sm:px-4 py-4">
         <div className="flex justify-between items-center mb-4">
           <MaternaHeader />
