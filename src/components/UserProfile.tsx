@@ -52,6 +52,16 @@ export const UserProfile = () => {
     fetchPreferences();
   }, [user]);
 
+  // Apply theme colors when preferences change
+  useEffect(() => {
+    if (preferences.theme_colors) {
+      const root = document.documentElement;
+      root.style.setProperty('--primary', preferences.theme_colors.primary);
+      root.style.setProperty('--secondary', preferences.theme_colors.secondary);
+      root.style.setProperty('--accent', preferences.theme_colors.accent);
+    }
+  }, [preferences.theme_colors]);
+
   const fetchPreferences = async () => {
     if (!user) return;
     
@@ -91,17 +101,18 @@ export const UserProfile = () => {
     
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/avatars/${fileName}`;
       
       const { data, error } = await supabase.storage
         .from("photos")
-        .upload(`avatars/${fileName}`, file);
+        .upload(filePath, file);
 
       if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage
         .from("photos")
-        .getPublicUrl(`avatars/${fileName}`);
+        .getPublicUrl(filePath);
 
       setPreferences(prev => ({ ...prev, avatar_url: publicUrl }));
       toast.success("Foto de perfil atualizada!");
