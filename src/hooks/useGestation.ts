@@ -1,6 +1,8 @@
-// src/hooks/useGestation.ts
-import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "lucide-react";
+import { useGestation } from "@/hooks/useGestation";
+
 
 function toDateFromYMD(ymd: string) {
   // interpreta YYYY-MM-DD como data local (sem fuso)
