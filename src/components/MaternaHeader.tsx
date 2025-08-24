@@ -1,7 +1,10 @@
 import { Heart, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export const MaternaHeader = () => {
+  const navigate = useNavigate();
+  
   return (
     <header className="bg-gradient-maternal shadow-soft rounded-b-3xl px-4 py-6 mb-6">
       <div className="flex items-center justify-between">
@@ -22,7 +25,12 @@ export const MaternaHeader = () => {
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
             <User className="w-5 h-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:bg-white/10"
+            onClick={() => navigate("/settings")}
+          >
             <Settings className="w-5 h-5" />
           </Button>
         </div>

@@ -80,6 +80,45 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_reminders: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_completed: boolean | null
+          reminder_date: string | null
+          reminder_type: string
+          scheduled_time: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_completed?: boolean | null
+          reminder_date?: string | null
+          reminder_type: string
+          scheduled_time: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_completed?: boolean | null
+          reminder_date?: string | null
+          reminder_type?: string
+          scheduled_time?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       family_members: {
         Row: {
           created_at: string
@@ -344,6 +383,45 @@ export type Database = {
           updated_at?: string
           user_id?: string
           week_number?: number | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          notification_time: string | null
+          preferred_name: string | null
+          reminder_enabled: boolean | null
+          reminder_frequency: string | null
+          theme_colors: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          notification_time?: string | null
+          preferred_name?: string | null
+          reminder_enabled?: boolean | null
+          reminder_frequency?: string | null
+          theme_colors?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          notification_time?: string | null
+          preferred_name?: string | null
+          reminder_enabled?: boolean | null
+          reminder_frequency?: string | null
+          theme_colors?: Json | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
