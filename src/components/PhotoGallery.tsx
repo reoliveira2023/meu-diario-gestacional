@@ -1,47 +1,157 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Camera, Image, Heart, Plus, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Camera, Image, Heart, Plus, Trash2, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Photo {
   id: string;
   url: string;
   caption: string;
-  date: string;
-  type: 'belly' | 'ultrasound' | 'special';
+  photo_type: 'belly' | 'ultrasound' | 'special';
+  taken_date: string;
+  week_number?: number;
 }
 
 export const PhotoGallery = () => {
+  const { user } = useAuth();
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [uploadingType, setUploadingType] = useState<Photo['photo_type'] | null>(null);
+  const [caption, setCaption] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handlePhotoUpload = (type: Photo['type']) => {
-    // Simular upload de foto
-    const newPhoto: Photo = {
-      id: Date.now().toString(),
-      url: "/placeholder.svg", // Placeholder para demonstração
-      caption: type === 'belly' ? 'Minha barriguinha hoje 🤰' : type === 'ultrasound' ? 'Ultrassom do bebê 👶' : 'Momento especial ✨',
-      date: new Date().toISOString(),
-      type
-    };
+  useEffect(() => {
+    if (user) {
+      fetchPhotos();
+    }
+  }, [user]);
 
-    setPhotos(prev => [newPhoto, ...prev]);
-    toast({
-      title: "Foto adicionada! 📸",
-      description: "Mais uma lembrança especial no seu álbum"
-    });
+  const fetchPhotos = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('photos')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPhotos((data || []) as Photo[]);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao carregar fotos",
+        description: error.message,
+      });
+    }
   };
 
-  const handleDeletePhoto = (id: string) => {
-    setPhotos(prev => prev.filter(photo => photo.id !== id));
-    toast({
-      title: "Foto removida",
-      description: "A foto foi excluída do seu álbum"
-    });
+  const handlePhotoSelect = (type: Photo['photo_type']) => {
+    setUploadingType(type);
+    setCaption(type === 'belly' ? 'Minha barriguinha hoje 🤰' : type === 'ultrasound' ? 'Ultrassom do bebê 👶' : 'Momento especial ✨');
   };
 
-  const getTypeColor = (type: Photo['type']) => {
+  const handleFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleCameraCapture = () => {
+    // Para mobile, isso vai abrir a câmera
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'camera';
+    input.onchange = (e) => handleFileChange(e as any);
+    input.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !uploadingType) return;
+
+    setLoading(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${uploadingType}_${Date.now()}.${fileExt}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('photos')
+        .getPublicUrl(fileName);
+
+      const { error: dbError } = await supabase
+        .from('photos')
+        .insert([{
+          user_id: user.id,
+          url: publicUrl,
+          caption,
+          photo_type: uploadingType,
+          taken_date: new Date().toISOString().split('T')[0],
+        }]);
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: "Foto adicionada! 📸",
+        description: "Mais uma lembrança especial no seu álbum"
+      });
+
+      setUploadingType(null);
+      setCaption("");
+      fetchPhotos();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao enviar foto",
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePhoto = async (id: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('photos')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Foto removida",
+        description: "A foto foi excluída do seu álbum"
+      });
+
+      fetchPhotos();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao remover foto",
+        description: error.message,
+      });
+    }
+  };
+
+  const getTypeColor = (type: Photo['photo_type']) => {
     switch (type) {
       case 'belly': return 'bg-maternal-pink/20 text-maternal-pink';
       case 'ultrasound': return 'bg-maternal-blue/20 text-maternal-blue';
@@ -50,7 +160,7 @@ export const PhotoGallery = () => {
     }
   };
 
-  const getTypeLabel = (type: Photo['type']) => {
+  const getTypeLabel = (type: Photo['photo_type']) => {
     switch (type) {
       case 'belly': return 'Barriguinha';
       case 'ultrasound': return 'Ultrassom';
@@ -71,39 +181,165 @@ export const PhotoGallery = () => {
       <CardContent className="space-y-6">
         {/* Botões de upload */}
         <div className="grid grid-cols-3 gap-3">
-          <Button
-            variant="outline"
-            className="flex flex-col gap-2 h-auto py-4 hover:bg-maternal-pink/10"
-            onClick={() => handlePhotoUpload('belly')}
-          >
-            <div className="w-8 h-8 rounded-full bg-maternal-pink/20 flex items-center justify-center">
-              <Camera className="w-4 h-4 text-maternal-pink" />
-            </div>
-            <span className="text-xs">Barriguinha</span>
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex flex-col gap-2 h-auto py-4 hover:bg-maternal-pink/10"
+                onClick={() => handlePhotoSelect('belly')}
+              >
+                <div className="w-8 h-8 rounded-full bg-maternal-pink/20 flex items-center justify-center">
+                  <Camera className="w-4 h-4 text-maternal-pink" />
+                </div>
+                <span className="text-xs">Barriguinha</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar Foto da Barriguinha</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="caption">Legenda</Label>
+                  <Input
+                    id="caption"
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    placeholder="Descreva este momento especial..."
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    onClick={handleCameraCapture}
+                    disabled={loading}
+                    className="flex items-center gap-2"
+                  >
+                    <Camera className="w-4 h-4" />
+                    Câmera
+                  </Button>
+                  <Button 
+                    onClick={handleFileSelect}
+                    variant="outline"
+                    disabled={loading}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Galeria
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           
-          <Button
-            variant="outline"
-            className="flex flex-col gap-2 h-auto py-4 hover:bg-maternal-blue/10"
-            onClick={() => handlePhotoUpload('ultrasound')}
-          >
-            <div className="w-8 h-8 rounded-full bg-maternal-blue/20 flex items-center justify-center">
-              <Image className="w-4 h-4 text-maternal-blue" />
-            </div>
-            <span className="text-xs">Ultrassom</span>
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex flex-col gap-2 h-auto py-4 hover:bg-maternal-blue/10"
+                onClick={() => handlePhotoSelect('ultrasound')}
+              >
+                <div className="w-8 h-8 rounded-full bg-maternal-blue/20 flex items-center justify-center">
+                  <Image className="w-4 h-4 text-maternal-blue" />
+                </div>
+                <span className="text-xs">Ultrassom</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar Ultrassom</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="caption-ultrasound">Legenda</Label>
+                  <Input
+                    id="caption-ultrasound"
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    placeholder="Descreva este momento especial..."
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    onClick={handleCameraCapture}
+                    disabled={loading}
+                    className="flex items-center gap-2"
+                  >
+                    <Camera className="w-4 h-4" />
+                    Câmera
+                  </Button>
+                  <Button 
+                    onClick={handleFileSelect}
+                    variant="outline"
+                    disabled={loading}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Galeria
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           
-          <Button
-            variant="outline"
-            className="flex flex-col gap-2 h-auto py-4 hover:bg-maternal-mint/10"
-            onClick={() => handlePhotoUpload('special')}
-          >
-            <div className="w-8 h-8 rounded-full bg-maternal-mint/20 flex items-center justify-center">
-              <Heart className="w-4 h-4 text-maternal-mint" />
-            </div>
-            <span className="text-xs">Especial</span>
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex flex-col gap-2 h-auto py-4 hover:bg-maternal-mint/10"
+                onClick={() => handlePhotoSelect('special')}
+              >
+                <div className="w-8 h-8 rounded-full bg-maternal-mint/20 flex items-center justify-center">
+                  <Heart className="w-4 h-4 text-maternal-mint" />
+                </div>
+                <span className="text-xs">Especial</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar Foto Especial</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="caption-special">Legenda</Label>
+                  <Input
+                    id="caption-special"
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    placeholder="Descreva este momento especial..."
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    onClick={handleCameraCapture}
+                    disabled={loading}
+                    className="flex items-center gap-2"
+                  >
+                    <Camera className="w-4 h-4" />
+                    Câmera
+                  </Button>
+                  <Button 
+                    onClick={handleFileSelect}
+                    variant="outline"
+                    disabled={loading}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Galeria
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
+
+        {/* Input de arquivo oculto */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
 
         {/* Galeria de fotos */}
         {photos.length === 0 ? (
@@ -127,9 +363,9 @@ export const PhotoGallery = () => {
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
                     <div className="flex justify-between items-start">
                       <div 
-                        className={`text-xs px-2 py-1 rounded-full ${getTypeColor(photo.type)}`}
+                        className={`text-xs px-2 py-1 rounded-full ${getTypeColor(photo.photo_type)}`}
                       >
-                        {getTypeLabel(photo.type)}
+                        {getTypeLabel(photo.photo_type)}
                       </div>
                       <Button
                         size="icon"
@@ -144,7 +380,7 @@ export const PhotoGallery = () => {
                     <div className="text-white">
                       <p className="text-xs font-medium">{photo.caption}</p>
                       <p className="text-xs opacity-80">
-                        {new Date(photo.date).toLocaleDateString('pt-BR')}
+                        {new Date(photo.taken_date).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
                   </div>

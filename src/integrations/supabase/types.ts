@@ -194,6 +194,42 @@ export type Database = {
         }
         Relationships: []
       }
+      photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          photo_type: string
+          taken_date: string
+          updated_at: string
+          url: string
+          user_id: string
+          week_number: number | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_type: string
+          taken_date?: string
+          updated_at?: string
+          url: string
+          user_id: string
+          week_number?: number | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_type?: string
+          taken_date?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+          week_number?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -257,6 +293,57 @@ export type Database = {
           is_essential?: boolean | null
           name?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      timeline_events: {
+        Row: {
+          created_at: string
+          description: string | null
+          document_urls: string[] | null
+          emotions: string | null
+          event_date: string
+          event_type: string
+          id: string
+          is_milestone: boolean | null
+          mood_score: number | null
+          photo_urls: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+          week_number: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          document_urls?: string[] | null
+          emotions?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          is_milestone?: boolean | null
+          mood_score?: number | null
+          photo_urls?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+          week_number?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          document_urls?: string[] | null
+          emotions?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          is_milestone?: boolean | null
+          mood_score?: number | null
+          photo_urls?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          week_number?: number | null
         }
         Relationships: []
       }

@@ -4,7 +4,7 @@ import { PregnancyWeekCalculator } from "@/components/PregnancyWeekCalculator";
 import { MoodDiary } from "@/components/MoodDiary";
 import { PhotoGallery } from "@/components/PhotoGallery";
 import { BabyShoppingList } from "@/components/BabyShoppingList";
-import { PregnancyTimeline } from "@/components/PregnancyTimeline";
+import { PregnancyTimelineInteractive } from "@/components/PregnancyTimelineInteractive";
 import { MedicalExamsTracker } from "@/components/MedicalExamsTracker";
 import { WeightChart } from "@/components/WeightChart";
 import { BabyNamesGenerator } from "@/components/BabyNamesGenerator";
@@ -99,7 +99,7 @@ const Index = () => {
 
           <TabsContent value="photos" className="space-y-6">
             <PhotoGallery />
-            <PregnancyTimeline />
+            <PregnancyTimelineInteractive />
           </TabsContent>
 
           <TabsContent value="more" className="space-y-6">
