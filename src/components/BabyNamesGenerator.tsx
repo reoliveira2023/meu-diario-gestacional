@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Baby, Star, Plus, Trash2, Search, Shuffle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/hooks/use-toast";
 
 interface BabyName {
   id: string;
@@ -12,8 +14,9 @@ interface BabyName {
   gender: 'boy' | 'girl' | 'unisex';
   origin: string;
   meaning: string;
-  isFavorite: boolean;
+  is_favorite: boolean;
   notes?: string;
+  user_id?: string;
 }
 
 const popularNames = {
@@ -46,11 +49,42 @@ const popularNames = {
 };
 
 export const BabyNamesGenerator = () => {
+  const { user } = useAuth();
   const [savedNames, setSavedNames] = useState<BabyName[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGender, setSelectedGender] = useState<'boy' | 'girl' | 'unisex' | 'all'>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      fetchSavedNames();
+    }
+  }, [user]);
+
+  const fetchSavedNames = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('baby_names')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setSavedNames((data || []).map(item => ({
+        ...item,
+        gender: item.gender as 'boy' | 'girl' | 'unisex'
+      })));
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao carregar nomes",
+        description: error.message,
+      });
+    }
+  };
 
   const generateRandomNames = () => {
     const allNames = [...popularNames.boy, ...popularNames.girl, ...popularNames.unisex];
@@ -65,38 +99,107 @@ export const BabyNamesGenerator = () => {
 
   const [suggestedNames, setSuggestedNames] = useState(generateRandomNames());
 
-  const handleSaveName = (nameData: any) => {
-    const newName: BabyName = {
-      id: Date.now().toString(),
-      name: nameData.name,
-      gender: nameData.gender,
-      origin: nameData.origin,
-      meaning: nameData.meaning,
-      isFavorite: false,
-      notes: ''
-    };
+  const handleSaveName = async (nameData: any) => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Faça login",
+        description: "Você precisa estar logado para salvar nomes.",
+      });
+      return;
+    }
 
-    setSavedNames(prev => [...prev, newName]);
-    toast({
-      title: "Nome salvo! 💕",
-      description: `${nameData.name} foi adicionado à sua lista`
-    });
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('baby_names')
+        .insert([
+          {
+            user_id: user.id,
+            name: nameData.name,
+            gender: nameData.gender,
+            origin: nameData.origin,
+            meaning: nameData.meaning,
+            is_favorite: false,
+            notes: '',
+          }
+        ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Nome salvo! 💕",
+        description: `${nameData.name} foi adicionado à sua lista`,
+      });
+
+      fetchSavedNames();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao salvar nome",
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleToggleFavorite = (id: string) => {
-    setSavedNames(prev => prev.map(name => 
-      name.id === id ? { ...name, isFavorite: !name.isFavorite } : name
-    ));
+  const handleToggleFavorite = async (id: string) => {
+    if (!user) return;
+
+    const name = savedNames.find(n => n.id === id);
+    if (!name) return;
+
+    try {
+      const { error } = await supabase
+        .from('baby_names')
+        .update({ is_favorite: !name.is_favorite })
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      fetchSavedNames();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar favorito",
+        description: error.message,
+      });
+    }
   };
 
-  const handleDeleteName = (id: string) => {
-    setSavedNames(prev => prev.filter(name => name.id !== id));
+  const handleDeleteName = async (id: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('baby_names')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Nome removido",
+        description: "O nome foi removido da sua lista.",
+      });
+
+      fetchSavedNames();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao remover nome",
+        description: error.message,
+      });
+    }
   };
 
   const filteredNames = savedNames.filter(name => {
     const matchesSearch = name.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesGender = selectedGender === 'all' || name.gender === selectedGender;
-    const matchesFavorite = !showFavoritesOnly || name.isFavorite;
+    const matchesFavorite = !showFavoritesOnly || name.is_favorite;
     
     return matchesSearch && matchesGender && matchesFavorite;
   });
@@ -118,6 +221,17 @@ export const BabyNamesGenerator = () => {
       default: return '';
     }
   };
+
+  if (!user) {
+    return (
+      <Card className="shadow-card border-0">
+        <CardContent className="p-6 text-center">
+          <Baby className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <p className="text-muted-foreground">Faça login para salvar e gerenciar seus nomes favoritos</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-card border-0">
@@ -154,14 +268,14 @@ export const BabyNamesGenerator = () => {
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    <strong>Origin:</strong> {name.origin} • <strong>Significado:</strong> {name.meaning}
+                    <strong>Origem:</strong> {name.origin} • <strong>Significado:</strong> {name.meaning}
                   </p>
                 </div>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => handleSaveName(name)}
-                  disabled={savedNames.some(saved => saved.name === name.name)}
+                  disabled={loading || savedNames.some(saved => saved.name === name.name)}
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -232,7 +346,7 @@ export const BabyNamesGenerator = () => {
                           <Badge variant="outline" className={getGenderColor(name.gender)}>
                             {getGenderLabel(name.gender)}
                           </Badge>
-                          {name.isFavorite && (
+                          {name.is_favorite && (
                             <Star className="w-4 h-4 text-yellow-500 fill-current" />
                           )}
                         </div>
@@ -252,12 +366,13 @@ export const BabyNamesGenerator = () => {
                           variant="ghost"
                           onClick={() => handleToggleFavorite(name.id)}
                         >
-                          <Heart className={`w-4 h-4 ${name.isFavorite ? 'text-red-500 fill-current' : ''}`} />
+                          <Heart className={`w-4 h-4 ${name.is_favorite ? 'text-red-500 fill-current' : ''}`} />
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
                           onClick={() => handleDeleteName(name.id)}
+                          className="text-destructive hover:text-destructive"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
