@@ -1,22 +1,30 @@
+// src/components/.../CountdownTimer.tsx
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Baby, Heart } from "lucide-react";
 import { differenceInDays, differenceInHours, differenceInMinutes, addWeeks, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useGestation } from "@/hooks/useGestation"; // <-- usa o hook que persiste no Supabase
+import { useGestation } from "@/hooks/useGestation";
 
 export const CountdownTimer = () => {
-  const { loading, lmpDate, saveLmpDate, calc } = useGestation(); // lmp = última menstruação
+  const { loading, lmpYmd, saveLmpDate, calc } = useGestation();
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [editing, setEditing] = useState(!lmpYmd);
+  const [pending, setPending] = useState(lmpYmd ?? ""); // YYYY-MM-DD
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentDate(new Date()), 60_000);
-    return () => clearInterval(timer);
+    const t = setInterval(() => setCurrentDate(new Date()), 60_000);
+    return () => clearInterval(t);
   }, []);
 
-  // calcula DPP a partir da LMP (persistida)
-  const calculatedDueDate = lmpDate ? addWeeks(lmpDate, 40) : null;
+  // se mudou no banco (outro lugar), sincroniza no input
+  useEffect(() => {
+    if (lmpYmd) { setPending(lmpYmd); setEditing(false); }
+  }, [lmpYmd]);
+
+  // calcula DPP
+  const calculatedDueDate = calc?.lmpDate ? addWeeks(calc.lmpDate, 40) : null;
 
   useEffect(() => {
     if (!calculatedDueDate) return;
@@ -27,25 +35,41 @@ export const CountdownTimer = () => {
     setTimeLeft({ days, hours, minutes });
   }, [calculatedDueDate, currentDate]);
 
-  // Sem LMP: mostra seletor e salva no Supabase (persistente pós-logout)
-  if (!lmpDate) {
+  // Modo edição (sem data salva ou usuário clicou "Editar")
+  if (loading || editing || !lmpYmd) {
     return (
       <Card className="shadow-card border-0 bg-gradient-soft">
         <CardContent className="p-4 text-center">
           <Clock className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
           <p className="text-sm text-muted-foreground mb-3">
-            Para calcular sua semana, informe a data da sua última menstruação:
+            Informe a data da sua última menstruação para calcular a semana e a DPP:
           </p>
-          <input
-            type="date"
-            className="border rounded px-3 py-2"
-            onChange={(e) => {
-              if (!e.target.value) return;
-              // salva YYYY-MM-DD no Supabase (o hook já faz o update)
-              const d = new Date(e.target.value);
-              saveLmpDate(d);
-            }}
-          />
+          <div className="flex items-center justify-center gap-2">
+            <input
+              type="date"
+              value={pending}
+              onChange={(e)=> setPending(e.target.value)}
+              className="border rounded px-3 py-2"
+            />
+            <button
+              className="px-3 py-2 rounded bg-pink-600 text-white hover:bg-pink-700"
+              onClick={async () => {
+                if (!pending) return;
+                await saveLmpDate(pending); // salva como YYYY-MM-DD (persistente)
+                setEditing(false);
+              }}
+            >
+              Salvar
+            </button>
+            {lmpYmd && (
+              <button
+                className="px-3 py-2 rounded border"
+                onClick={()=> { setPending(lmpYmd); setEditing(false); }}
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
@@ -53,7 +77,7 @@ export const CountdownTimer = () => {
 
   const isOverdue = calculatedDueDate! < currentDate;
   const totalWeeks = calc?.week ?? 0;
-  const daysFromLmp = lmpDate ? differenceInDays(currentDate, lmpDate) : 0;
+  const daysFromLmp = calc?.lmpDate ? differenceInDays(currentDate, calc.lmpDate) : 0;
   const daysInCurrentWeek = daysFromLmp % 7;
 
   return (
@@ -66,7 +90,6 @@ export const CountdownTimer = () => {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Data prevista */}
         <div className="text-center">
           <p className="text-sm opacity-90 mb-1">Data Provável do Parto</p>
           <p className="text-lg font-bold">
@@ -74,7 +97,6 @@ export const CountdownTimer = () => {
           </p>
         </div>
 
-        {/* Contagem regressiva */}
         {!isOverdue ? (
           <div className="space-y-3">
             <div className="text-center">
@@ -83,7 +105,6 @@ export const CountdownTimer = () => {
                 {timeLeft.days === 1 ? "dia restante" : "dias restantes"}
               </p>
             </div>
-
             {timeLeft.days <= 30 && (
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="bg-white/10 rounded-lg p-3">
@@ -108,7 +129,6 @@ export const CountdownTimer = () => {
           </div>
         )}
 
-        {/* Progresso da gestação */}
         {totalWeeks > 0 && !isOverdue && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm opacity-90">
@@ -124,14 +144,10 @@ export const CountdownTimer = () => {
           </div>
         )}
 
-        {/* Mensagens motivacionais */}
-        <div className="text-center text-sm opacity-90">
-          {timeLeft.days > 60 && "Ainda temos muito tempo para nos preparar! 💕"}
-          {timeLeft.days <= 60 && timeLeft.days > 30 && "O encontro está se aproximando! 🤗"}
-          {timeLeft.days <= 30 && timeLeft.days > 14 && "Nas últimas semanas! Em breve nos braços 👶"}
-          {timeLeft.days <= 14 && timeLeft.days > 7 && "Últimos dias! A ansiedade está no máximo! ✨"}
-          {timeLeft.days <= 7 && timeLeft.days > 0 && "A qualquer momento agora! 🎉"}
-          {isOverdue && "Paciência, pequeno! Você chegará na hora certa 🙏"}
+        <div className="text-center">
+          <button className="text-sm underline" onClick={() => setEditing(true)}>
+            Editar data da menstruação
+          </button>
         </div>
       </CardContent>
     </Card>
