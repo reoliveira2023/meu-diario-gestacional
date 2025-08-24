@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserProfile } from "@/components/UserProfile";
 import { DailyReminders } from "@/components/DailyReminders";
+import { SocialFeed } from "@/components/SocialFeed";
 import { useNavigate } from "react-router-dom";
 
 const Settings = () => {
@@ -28,12 +29,15 @@ const Settings = () => {
 
       <div className="container max-w-4xl mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="profile" className="text-sm">
               Perfil & Tema
             </TabsTrigger>
             <TabsTrigger value="reminders" className="text-sm">
               Lembretes
+            </TabsTrigger>
+            <TabsTrigger value="social" className="text-sm">
+              Família & Social
             </TabsTrigger>
           </TabsList>
 
@@ -43,6 +47,10 @@ const Settings = () => {
 
           <TabsContent value="reminders">
             <DailyReminders />
+          </TabsContent>
+
+          <TabsContent value="social">
+            <SocialFeed />
           </TabsContent>
         </Tabs>
       </div>

@@ -357,8 +357,12 @@ export const UserProfile = () => {
         </CardContent>
       </Card>
 
-      <Button onClick={savePreferences} disabled={saving} className="w-full">
-        {saving ? "Salvando..." : "Salvar Preferências"}
+      <Button 
+        onClick={savePreferences} 
+        disabled={saving} 
+        className="w-full bg-gradient-maternal hover:bg-gradient-maternal/90 text-primary-foreground font-medium py-3 shadow-soft hover:shadow-floating transition-all duration-300"
+      >
+        {saving ? "Salvando suas preferências..." : "Salvar Todas as Preferências"}
       </Button>
     </div>
   );
