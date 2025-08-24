@@ -59,6 +59,11 @@ export const UserProfile = () => {
       root.style.setProperty('--primary', preferences.theme_colors.primary);
       root.style.setProperty('--secondary', preferences.theme_colors.secondary);
       root.style.setProperty('--accent', preferences.theme_colors.accent);
+      
+      // Also update the maternal colors that are used in the design system
+      root.style.setProperty('--maternal-pink', preferences.theme_colors.primary);
+      root.style.setProperty('--soft-lavender', preferences.theme_colors.secondary);
+      root.style.setProperty('--mint-green', preferences.theme_colors.accent);
     }
   }, [preferences.theme_colors]);
 
@@ -130,6 +135,11 @@ export const UserProfile = () => {
     root.style.setProperty('--primary', colorSet.primary);
     root.style.setProperty('--secondary', colorSet.secondary);
     root.style.setProperty('--accent', colorSet.accent);
+    
+    // Also update the maternal colors
+    root.style.setProperty('--maternal-pink', colorSet.primary);
+    root.style.setProperty('--soft-lavender', colorSet.secondary);
+    root.style.setProperty('--mint-green', colorSet.accent);
   };
 
   const savePreferences = async () => {
@@ -165,90 +175,126 @@ export const UserProfile = () => {
 
   return (
     <div className="space-y-6">
-      {/* Perfil pessoal */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
-            Perfil Pessoal
-          </CardTitle>
-          <CardDescription>
-            Personalize sua foto de perfil e nome de exibição
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
-            <Avatar className="w-20 h-20">
-              <AvatarImage src={preferences.avatar_url} />
-              <AvatarFallback className="text-lg">
-                {preferences.preferred_name?.charAt(0) || user?.email?.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <Button variant="outline" className="relative">
-                <Upload className="w-4 h-4 mr-2" />
-                Alterar Foto
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-              </Button>
+      {/* Perfil Social - Estilo Rede Social */}
+      <Card className="overflow-hidden bg-gradient-soft border-0 shadow-card">
+        <div className="relative">
+          {/* Cover Background */}
+          <div className="h-32 bg-gradient-maternal"></div>
+          
+          {/* Profile Section */}
+          <div className="relative px-6 pb-6">
+            <div className="flex flex-col items-center -mt-16 space-y-4">
+              {/* Large Avatar */}
+              <div className="relative">
+                <Avatar className="w-32 h-32 border-4 border-background shadow-floating">
+                  <AvatarImage src={preferences.avatar_url} className="object-cover" />
+                  <AvatarFallback className="text-3xl font-semibold bg-maternal-pink text-primary-foreground">
+                    {preferences.preferred_name?.charAt(0) || user?.email?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                
+                {/* Upload Button Overlay */}
+                <div className="absolute -bottom-2 -right-2">
+                  <Button 
+                    size="sm" 
+                    className="rounded-full w-10 h-10 p-0 shadow-soft relative overflow-hidden"
+                    variant="secondary"
+                  >
+                    <Upload className="w-4 h-4" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                  </Button>
+                </div>
+              </div>
+              
+              {/* User Info */}
+              <div className="text-center space-y-2">
+                <div className="space-y-1">
+                  <Label htmlFor="preferred_name" className="text-sm text-muted-foreground">
+                    Como você gostaria de ser chamada?
+                  </Label>
+                  <Input
+                    id="preferred_name"
+                    value={preferences.preferred_name || ""}
+                    onChange={(e) => setPreferences(prev => ({ ...prev, preferred_name: e.target.value }))}
+                    placeholder="Seu nome carinhoso"
+                    className="text-center text-lg font-medium border-0 bg-background/50 backdrop-blur"
+                  />
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  Mamãe especial em uma jornada única ✨
+                </p>
+              </div>
             </div>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="preferred_name">Nome de Exibição</Label>
-            <Input
-              id="preferred_name"
-              value={preferences.preferred_name || ""}
-              onChange={(e) => setPreferences(prev => ({ ...prev, preferred_name: e.target.value }))}
-              placeholder="Como você gostaria de ser chamada?"
-            />
-          </div>
-        </CardContent>
+        </div>
       </Card>
 
-      {/* Personalização de cores */}
-      <Card>
+      {/* Personalização de Cores - Visual Melhorado */}
+      <Card className="shadow-card border-maternal-pink/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-maternal-pink">
             <Palette className="w-5 h-5" />
-            Tema e Cores
+            Personalize Suas Cores
           </CardTitle>
           <CardDescription>
-            Escolha as cores que mais combinam com você
+            Escolha o tema que mais combina com seu momento especial
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {colorPresets.map((preset, index) => (
-              <Button
-                key={index}
-                variant="outline"
-                className="justify-start h-auto p-3"
-                onClick={() => handleColorChange(preset.colors)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex gap-1">
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: `hsl(${preset.colors.primary})` }}
-                    />
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: `hsl(${preset.colors.secondary})` }}
-                    />
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: `hsl(${preset.colors.accent})` }}
-                    />
+        <CardContent className="space-y-6">
+          <div className="grid gap-4">
+            {colorPresets.map((preset, index) => {
+              const isActive = 
+                preferences.theme_colors.primary === preset.colors.primary &&
+                preferences.theme_colors.secondary === preset.colors.secondary &&
+                preferences.theme_colors.accent === preset.colors.accent;
+              
+              return (
+                <Button
+                  key={index}
+                  variant={isActive ? "default" : "outline"}
+                  className={`justify-start h-auto p-4 transition-all duration-300 ${
+                    isActive 
+                      ? "ring-2 ring-primary ring-offset-2 shadow-soft" 
+                      : "hover:shadow-soft hover:border-maternal-pink/40"
+                  }`}
+                  onClick={() => handleColorChange(preset.colors)}
+                >
+                  <div className="flex items-center gap-4 w-full">
+                    <div className="flex gap-2">
+                      <div 
+                        className="w-6 h-6 rounded-full border-2 border-white shadow-sm" 
+                        style={{ backgroundColor: `hsl(${preset.colors.primary})` }}
+                      />
+                      <div 
+                        className="w-6 h-6 rounded-full border-2 border-white shadow-sm" 
+                        style={{ backgroundColor: `hsl(${preset.colors.secondary})` }}
+                      />
+                      <div 
+                        className="w-6 h-6 rounded-full border-2 border-white shadow-sm" 
+                        style={{ backgroundColor: `hsl(${preset.colors.accent})` }}
+                      />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <span className="font-medium">{preset.name}</span>
+                      {isActive && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          ✨ Tema atual
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-sm">{preset.name}</span>
-                </div>
-              </Button>
-            ))}
+                </Button>
+              );
+            })}
+          </div>
+          
+          <div className="text-center text-sm text-muted-foreground bg-maternal-pink/5 p-3 rounded-lg">
+            💡 As cores escolhidas serão aplicadas em todo o aplicativo
           </div>
         </CardContent>
       </Card>
