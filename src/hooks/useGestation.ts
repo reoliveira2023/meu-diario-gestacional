@@ -18,50 +18,58 @@ export function useGestation() {
       setLoading(true);
 
       // 1) Usuário logado
-      const {
-        data: { user },
-        error: authErr,
-      } = await supabase.auth.getUser();
+      const { data: { user }, error: authErr } = await supabase.auth.getUser();
       if (authErr) console.error("[useGestation] getUser", authErr);
 
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+      if (!user) { setLoading(false); return; }
       setUid(user.id);
 
-      // 2) Garante que o profile existe (sem usar UPSERT)
+      // 2) Verifica se já existe profile
       const { data: existing, error: selErr } = await supabase
         .from("profiles")
         .select("id")
         .eq("id", user.id)
         .maybeSingle();
 
-      if (selErr) {
-        console.error("[useGestation] select profile", selErr);
-      }
+      if (selErr) console.error("[useGestation] select profile", selErr);
 
+      // 3) Se não existir, insere (sem UPSERT) com timestamps (evita NOT NULL)
       if (!existing) {
+        const nowIso = new Date().toISOString();
         const { error: insErr } = await supabase
           .from("profiles")
-          .insert({ id: user.id });
+          .insert([{ id: user.id, created_at: nowIso, updated_at: nowIso }])
+          .select()
+          .single();
 
-        // 23505 = duplicate key; pode acontecer por corrida de requests. Ignoramos.
+        // 23505 = duplicate key; pode acontecer em corrida — ignoramos
         if (insErr && (insErr as any).code !== "23505") {
-          console.error("[useGestation] insert profile", insErr);
+          console.error("[useGestation] insert profile", {
+            code: (insErr as any).code,
+            message: (insErr as any).message,
+            details: (insErr as any).details,
+            hint: (insErr as any).hint,
+          });
         }
       }
 
-      // 3) Lê a lmp_date
+      // 4) Lê lmp_date
       const { data, error } = await supabase
         .from("profiles")
         .select("lmp_date")
         .eq("id", user.id)
         .maybeSingle();
 
-      if (error) console.error("[useGestation] select lmp_date", error);
-      if (data?.lmp_date) setLmpYmd(String(data.lmp_date)); // vem como YYYY-MM-DD
+      if (error) {
+        console.error("[useGestation] select lmp_date", {
+          code: (error as any).code,
+          message: (error as any).message,
+          details: (error as any).details,
+          hint: (error as any).hint,
+        });
+      }
 
+      if (data?.lmp_date) setLmpYmd(String(data.lmp_date)); // YYYY-MM-DD
       setLoading(false);
     })();
   }, []);
@@ -73,8 +81,10 @@ export function useGestation() {
 
     const { error } = await supabase
       .from("profiles")
-      .update({ lmp_date: ymd })
-      .eq("id", uid);
+      .update({ lmp_date: ymd, updated_at: new Date().toISOString() })
+      .eq("id", uid)
+      .select()
+      .single();
 
     if (error) {
       console.error("[useGestation] update lmp_date", {
