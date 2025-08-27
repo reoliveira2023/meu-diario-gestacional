@@ -1,13 +1,19 @@
-import CountdownFromGestation from "@/components/dashboards/CountdownFromGestation";
-import GalleryCard from "@/components/dashboards/GalleryCard";
-import RemindersCard from "@/components/dashboards/RemindersCard";
+import CountdownFromGestation from "./CountdownFromGestation";
+import RemindersCard from "./RemindersCard";
+import GalleryCard from "./GalleryCard";
 
 export default function Dashboard() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-      <CountdownFromGestation />
-      <RemindersCard />
-      <GalleryCard />
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="lg:col-span-1">
+        <CountdownFromGestation />
+      </div>
+      <div className="lg:col-span-1">
+        <RemindersCard />
+      </div>
+      <div className="lg:col-span-1">
+        <GalleryCard />
+      </div>
     </div>
   );
 }
