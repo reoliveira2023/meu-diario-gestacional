@@ -4,13 +4,14 @@ import { DailyReminders } from "@/components/DailyReminders";
 
 export default function RemindersCard() {
   return (
-    <Card className="border-0 shadow-card">
-      <CardHeader>
+    <Card className="shadow-card border-0 bg-gradient-soft h-full">
+      <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
-          <Bell className="w-5 h-5" /> Lembretes de Hoje
+          <Bell className="w-5 h-5 text-primary" />
+          Lembretes de Hoje
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-0">
         <DailyReminders />
       </CardContent>
     </Card>
