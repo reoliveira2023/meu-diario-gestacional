@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 
+
 /** Converte "YYYY-MM-DD" -> Date (sem fuso) */
 function toDateFromYMD(ymd: string) {
   const [y, m, d] = ymd.split("-").map(Number);
