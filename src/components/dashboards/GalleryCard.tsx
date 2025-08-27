@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Images } from "lucide-react";
-import PhotoGallery from "@/components/PhotoGallery";
+import { PhotoGallery } from "@/components/PhotoGallery";
+
 
 export default function GalleryCard() {
   return (
