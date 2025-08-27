@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Bell } from "lucide-react";
-import DailyReminders from "@/components/DailyReminders";
+import { DailyReminders } from "@/components/DailyReminders";
 
 export default function RemindersCard() {
   return (
