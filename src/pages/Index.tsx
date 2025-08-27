@@ -16,8 +16,9 @@ import { Heart, Camera, Stethoscope, Baby, LogOut, User, Bell } from "lucide-rea
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
-// 👇 novo container de cards do topo
-import Dashboard from "@/components/dashboards/Dashboard";
+// 💡 importe o Dashboard do topo
+// (pode usar alias ou relativo; aqui uso relativo para evitar conflitos de alias)
+import Dashboard from "../components/dashboards/Dashboard";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -61,12 +62,12 @@ const Index = () => {
           <DashboardInsights />
         </div>
 
-        {/* 🔥 Novo topo reorganizado (Contagem + Lembretes + Galeria) */}
+        {/* 🔥 Topo reorganizado (Contagem + Lembretes + Galeria) */}
         <Dashboard />
       </div>
 
       <div className="px-2 sm:px-4 pb-20">
-        {/* Abas (sem duplicar cards do topo) */}
+        {/* Abas (sem repetir cards do topo) */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-5 mb-6 bg-card/50 backdrop-blur-sm sticky top-4 z-10">
             <TabsTrigger value="home" className="flex flex-col gap-1 py-2 sm:py-3">
@@ -91,10 +92,8 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* HOME: sem repetir cards do topo; pode mostrar um “resumo” leve ou deixar vazio */}
-          <TabsContent value="home" className="space-y-6">
-            {/* Você pode colocar um texto/CTA aqui se quiser */}
-          </TabsContent>
+          {/* HOME: sem repetir cards do topo; pode deixar vazio ou incluir um CTA leve */}
+          <TabsContent value="home" className="space-y-6" />
 
           <TabsContent value="diary" className="space-y-6">
             <MoodDiary />
