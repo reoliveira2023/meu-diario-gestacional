@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-// ⚠️ IMPORT RELATIVO para evitar erro "supabase is not defined"
 import { supabase } from "../integrations/supabase/client";
 
 /** Converte "YYYY-MM-DD" -> Date (sem fuso) */
@@ -23,29 +22,29 @@ export function useGestation() {
       if (!user) { setLoading(false); return; }
       setUid(user.id);
 
-      // 2) Garante que o profile existe (sem upsert para evitar erro de colunas NOT NULL)
-      const { data: existing, error: selErr } = await supabase
+      // 2) Garante que o profile exista
+      const { error: upsertErr } = await supabase
         .from("profiles")
-        .select("id,lmp_date")
+        .upsert({ id: user.id }, { onConflict: "id", ignoreDuplicates: true });
+
+      if (upsertErr) {
+        const code = (upsertErr as any).code;
+        if (code && ["23505", "400", "409"].includes(String(code))) {
+          console.warn("[useGestation] upsert profile (ignorado):", upsertErr);
+        } else {
+          console.error("[useGestation] upsert profile (fatal):", upsertErr);
+        }
+      }
+
+      // 3) Lê a lmp_date
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("lmp_date")
         .eq("id", user.id)
         .maybeSingle();
 
-      if (selErr) console.error("[useGestation] select profile", selErr);
-
-      if (!existing) {
-        const { error: insErr } = await supabase
-          .from("profiles")
-          .insert({ id: user.id });
-
-        // 23505 = duplicate key (corrida); pode ignorar
-        if (insErr && (insErr as any).code !== "23505") {
-          console.error("[useGestation] insert profile", insErr);
-        }
-      } else {
-        if (existing.lmp_date) {
-          setLmpYmd(String(existing.lmp_date)); // já vem YYYY-MM-DD
-        }
-      }
+      if (error) console.error("[useGestation] select lmp_date", error);
+      if (data?.lmp_date) setLmpYmd(String(data.lmp_date));
 
       setLoading(false);
     })();
@@ -77,7 +76,6 @@ export function useGestation() {
 
     const lmpDate = toDateFromYMD(lmpYmd);
     const ms = Date.now() - lmpDate.getTime();
-
     const week = Math.max(1, Math.floor(ms / (1000 * 60 * 60 * 24 * 7)) + 1);
 
     const due = new Date(lmpDate);
