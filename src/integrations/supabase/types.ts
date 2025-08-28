@@ -213,6 +213,33 @@ export type Database = {
         }
         Relationships: []
       }
+      family_members_audit: {
+        Row: {
+          accessed_data: Json | null
+          action: string
+          created_at: string | null
+          family_member_id: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          accessed_data?: Json | null
+          action: string
+          created_at?: string | null
+          family_member_id?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          accessed_data?: Json | null
+          action?: string
+          created_at?: string | null
+          family_member_id?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       family_messages: {
         Row: {
           attachment_url: string | null
