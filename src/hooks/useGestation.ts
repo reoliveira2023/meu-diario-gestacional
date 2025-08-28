@@ -58,7 +58,7 @@ export function useGestation() {
     const { error } = await supabase
       .from("profiles")
       .update({ lmp_date: ymd })
-      .eq("user_id", uid);
+      .eq("id", uid);
 
     if (error) {
       console.error("[useGestation] update lmp_date", {
