@@ -25,7 +25,7 @@ export function useGestation() {
       // 2) Garante que o profile exista
       const { error: upsertErr } = await supabase
         .from("profiles")
-        .upsert({ id: user.id }, { onConflict: "id", ignoreDuplicates: true });
+        .upsert({ user_id: user.id }, { onConflict: "user_id", ignoreDuplicates: true });
 
       if (upsertErr) {
         const code = (upsertErr as any).code;
@@ -40,7 +40,7 @@ export function useGestation() {
       const { data, error } = await supabase
         .from("profiles")
         .select("lmp_date")
-        .eq("id", user.id)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (error) console.error("[useGestation] select lmp_date", error);
@@ -58,7 +58,7 @@ export function useGestation() {
     const { error } = await supabase
       .from("profiles")
       .update({ lmp_date: ymd })
-      .eq("id", uid);
+      .eq("user_id", uid);
 
     if (error) {
       console.error("[useGestation] update lmp_date", {
