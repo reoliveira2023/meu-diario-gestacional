@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Smile, Frown, Meh, Zap, Coffee, Pill, Baby } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const moodOptions = [
   { emoji: "😊", label: "Radiante", color: "bg-maternal-peach text-maternal-peach" },
@@ -27,7 +29,9 @@ export const MoodDiary = () => {
   const [selectedMood, setSelectedMood] = useState<string>("");
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSymptomToggle = (symptom: string) => {
     setSelectedSymptoms(prev => 
@@ -37,7 +41,7 @@ export const MoodDiary = () => {
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedMood) {
       toast({
         title: "Ops! 🤗",
@@ -47,27 +51,52 @@ export const MoodDiary = () => {
       return;
     }
 
-    // Salvar no localStorage ou backend
-    const entry = {
-      date: new Date().toISOString(),
-      mood: selectedMood,
-      symptoms: selectedSymptoms,
-      notes
-    };
-    
-    const existingEntries = JSON.parse(localStorage.getItem('moodEntries') || '[]');
-    existingEntries.push(entry);
-    localStorage.setItem('moodEntries', JSON.stringify(existingEntries));
+    if (!user) {
+      toast({
+        title: "Erro 🚫",
+        description: "Você precisa estar logado para salvar entradas",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    toast({
-      title: "Registro salvo! 💕",
-      description: "Sua entrada foi adicionada ao diário"
-    });
+    setIsLoading(true);
 
-    // Limpar formulário
-    setSelectedMood("");
-    setSelectedSymptoms([]);
-    setNotes("");
+    try {
+      // Save securely to Supabase database instead of localStorage
+      const { error } = await supabase
+        .from("mood_entries")
+        .insert({
+          user_id: user.id,
+          mood: selectedMood,
+          symptoms: selectedSymptoms,
+          notes: notes.trim() || null,
+          entry_date: new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Registro salvo! 💕",
+        description: "Sua entrada foi adicionada ao diário com segurança"
+      });
+
+      // Clear form
+      setSelectedMood("");
+      setSelectedSymptoms([]);
+      setNotes("");
+    } catch (error) {
+      console.error("Error saving mood entry:", error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar sua entrada. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -134,10 +163,17 @@ export const MoodDiary = () => {
         {/* Botão salvar */}
         <Button 
           onClick={handleSave}
-          className="w-full bg-gradient-maternal hover:opacity-90 transition-opacity"
+          disabled={isLoading || !user}
+          className="w-full bg-gradient-maternal hover:opacity-90 transition-opacity disabled:opacity-50"
         >
-          Salvar no meu diário 💕
+          {isLoading ? "Salvando..." : "Salvar no meu diário 💕"}
         </Button>
+        
+        {!user && (
+          <p className="text-sm text-muted-foreground text-center">
+            Faça login para salvar suas entradas com segurança
+          </p>
+        )}
       </CardContent>
     </Card>
   );
