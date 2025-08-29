@@ -71,8 +71,9 @@ const Index = () => {
       </div>
 
       <div className="px-2 sm:px-4 pb-20">
+        {/* Menu de navegação movido para cá */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6 bg-card/50 backdrop-blur-sm sticky top-4 z-10">
+          <TabsList className="grid w-full grid-cols-5 mb-6 bg-card/50 backdrop-blur-sm sticky top-4 z-10 mt-4">
             <TabsTrigger value="home" className="flex flex-col gap-1 py-2 sm:py-3">
               <Bell className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-xs">Início</span>
