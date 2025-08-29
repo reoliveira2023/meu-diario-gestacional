@@ -40,40 +40,33 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-maternal px-2 sm:px-4 py-4">
-        <div className="flex justify-between items-center mb-4">
-          <MaternaHeader />
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-white text-xs sm:text-sm">
-              <User className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">{user.email?.split("@")[0]}</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={signOut} className="text-xs sm:text-sm">
-              <LogOut className="h-4 w-4 mr-1 sm:mr-2" />
-              Sair
-            </Button>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Header */}
+        <div className="bg-gradient-maternal px-2 sm:px-4 py-4">
+          <div className="flex justify-between items-center mb-4">
+            <MaternaHeader />
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="text-white text-xs sm:text-sm">
+                <User className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{user.email?.split("@")[0]}</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={signOut} className="text-xs sm:text-sm">
+                <LogOut className="h-4 w-4 mr-1 sm:mr-2" />
+                Sair
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Insights rápidos */}
-        <div className="mb-4">
-          <DashboardInsights />
-        </div>
+          {/* Insights rápidos */}
+          <div className="mb-4">
+            <DashboardInsights />
+          </div>
 
-        {/* Cards do topo */}
-        <Dashboard />
+          {/* Cards do topo */}
+          <Dashboard />
 
-        {/* Editor da data da menstruação */}
-        <div className="mt-4">
-          <LmpEditorCard />
-        </div>
-      </div>
-
-      <div className="px-2 sm:px-4 pb-20">
-        {/* Menu de navegação movido para cá */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6 bg-card/50 backdrop-blur-sm sticky top-4 z-10 mt-4">
+          {/* Menu de navegação logo abaixo dos cards */}
+          <TabsList className="grid w-full grid-cols-5 mb-4 bg-card/50 backdrop-blur-sm mt-4">
             <TabsTrigger value="home" className="flex flex-col gap-1 py-2 sm:py-3">
               <Bell className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-xs">Início</span>
@@ -96,6 +89,13 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
+          {/* Editor da data da menstruação */}
+          <div className="mt-4">
+            <LmpEditorCard />
+          </div>
+        </div>
+
+        <div className="px-2 sm:px-4 pb-20">
           <TabsContent value="home" className="space-y-6"></TabsContent>
 
           <TabsContent value="diary" className="space-y-6">
@@ -125,8 +125,8 @@ const Index = () => {
               <div className="text-xs text-muted-foreground">🔒 Seus dados estão seguros e privados</div>
             </div>
           </TabsContent>
-        </Tabs>
-      </div>
+        </div>
+      </Tabs>
     </div>
   );
 };
