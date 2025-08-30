@@ -56,33 +56,6 @@ export default function CountdownFromGestation() {
           <Clock className="w-5 h-5 text-primary" />
           Contagem Regressiva
         </CardTitle>
-        <div className="flex flex-wrap items-center gap-3 mt-4">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="bg-white/60">
-                <CalendarIcon className="w-4 h-4 mr-2" />
-                {pending ? format(pending, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={pending}
-                onSelect={(d) => setPending(d ?? undefined)}
-                disabled={(date) => date > new Date()}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-
-          <Button onClick={handleSave} disabled={!pending || saving || loading} className="bg-pink-600 hover:bg-pink-700">
-            {saving ? "Salvando..." : "Salvar"}
-          </Button>
-
-          {savedAt && (
-            <span className="text-xs text-green-600">Data salva com sucesso.</span>
-          )}
-        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-center">
@@ -108,6 +81,34 @@ export default function CountdownFromGestation() {
           <div className="text-right text-[11px] text-muted-foreground">
             {week}s
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-border/50">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="bg-white/60">
+                <CalendarIcon className="w-4 h-4 mr-2" />
+                {pending ? format(pending, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={pending}
+                onSelect={(d) => setPending(d ?? undefined)}
+                disabled={(date) => date > new Date()}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+
+          <Button onClick={handleSave} disabled={!pending || saving || loading} className="bg-pink-600 hover:bg-pink-700">
+            {saving ? "Salvando..." : "Salvar"}
+          </Button>
+
+          {savedAt && (
+            <span className="text-xs text-green-600">Data salva com sucesso.</span>
+          )}
         </div>
       </CardContent>
     </Card>
