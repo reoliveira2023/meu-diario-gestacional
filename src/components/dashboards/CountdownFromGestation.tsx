@@ -1,11 +1,38 @@
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock, Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useGestation } from "@/hooks/useGestation";
 
+// util: Date -> "YYYY-MM-DD"
+const toYMD = (d: Date) =>
+  [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+
 export default function CountdownFromGestation() {
-  const { loading, calc } = useGestation();
+  const { loading, lmpYmd, saveLmpDate, calc } = useGestation();
+  const [pending, setPending] = useState<Date | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (lmpYmd) {
+      const [y, m, d] = lmpYmd.split("-").map(Number);
+      setPending(new Date(y, (m ?? 1) - 1, d ?? 1));
+    }
+  }, [lmpYmd]);
+
+  async function handleSave() {
+    if (!pending) return;
+    setSaving(true);
+    await saveLmpDate(toYMD(pending));
+    setSaving(false);
+    setSavedAt(Date.now());
+    setTimeout(() => setSavedAt(null), 2500);
+  }
 
   if (loading) {
     return (
@@ -29,6 +56,33 @@ export default function CountdownFromGestation() {
           <Clock className="w-5 h-5 text-primary" />
           Contagem Regressiva
         </CardTitle>
+        <div className="flex flex-wrap items-center gap-3 mt-4">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="bg-white/60">
+                <CalendarIcon className="w-4 h-4 mr-2" />
+                {pending ? format(pending, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={pending}
+                onSelect={(d) => setPending(d ?? undefined)}
+                disabled={(date) => date > new Date()}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+
+          <Button onClick={handleSave} disabled={!pending || saving || loading} className="bg-pink-600 hover:bg-pink-700">
+            {saving ? "Salvando..." : "Salvar"}
+          </Button>
+
+          {savedAt && (
+            <span className="text-xs text-green-600">Data salva com sucesso.</span>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-center">
@@ -54,15 +108,6 @@ export default function CountdownFromGestation() {
           <div className="text-right text-[11px] text-muted-foreground">
             {week}s
           </div>
-        </div>
-
-        <div className="text-center">
-          <a
-            href="#editar-lmp"
-            className="text-xs underline text-muted-foreground hover:text-foreground"
-          >
-            Editar data da menstruação
-          </a>
         </div>
       </CardContent>
     </Card>
