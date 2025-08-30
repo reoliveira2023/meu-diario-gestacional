@@ -1,5 +1,4 @@
-// src/pages/Index.tsx
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { MaternaHeader } from "@/components/MaternaHeader";
 import { MoodDiary } from "@/components/MoodDiary";
 import { PhotoGallery } from "@/components/PhotoGallery";
@@ -17,9 +16,10 @@ import { Heart, Camera, Stethoscope, Baby, LogOut, User, Bell } from "lucide-rea
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
-import NewDashboard from "@/components/dashboards/NewDashboard";
+import Dashboard from "@/components/dashboards/Dashboard";
+import LmpEditorCard from "@/components/dashboards/LmpEditorCard";
 
-export default function Index() {
+const Index = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("home");
@@ -31,7 +31,7 @@ export default function Index() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary" />
       </div>
     );
   }
@@ -40,35 +40,34 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-maternal px-2 sm:px-4 py-4">
-        <div className="flex justify-between items-center mb-4">
-          <MaternaHeader />
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-white text-xs sm:text-sm">
-              <User className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">{user.email?.split("@")[0]}</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={signOut} className="text-xs sm:text-sm">
-              <LogOut className="h-4 w-4 mr-1 sm:mr-2" />
-              Sair
-            </Button>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Header */}
+        <div className="bg-gradient-maternal px-2 sm:px-4 py-4">
+          <div className="flex justify-between items-center mb-4">
+            <MaternaHeader />
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="text-white text-xs sm:text-sm">
+                <User className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{user.email?.split("@")[0]}</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={signOut} className="text-xs sm:text-sm">
+                <LogOut className="h-4 w-4 mr-1 sm:mr-2" />
+                Sair
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Insights rápidos */}
-        <div className="mb-4">
-          <DashboardInsights />
-        </div>
+          {/* Insights rápidos */}
+          <div className="mb-4">
+            <DashboardInsights />
+          </div>
 
-        {/* Novo topo (unificado) */}
-        <NewDashboard />
-      </div>
+          {/* Cards do topo */}
+          <Dashboard />
 
-      <div className="px-2 sm:px-4 pb-20">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6 bg-card/50 backdrop-blur-sm sticky top-4 z-10">
-            <TabsTrigger value="home" data-tab="home" className="flex flex-col gap-1 py-2 sm:py-3">
+          {/* Menu de navegação logo abaixo dos cards */}
+          <TabsList className="grid w-full grid-cols-5 mb-4 bg-card/50 backdrop-blur-sm mt-4">
+            <TabsTrigger value="home" className="flex flex-col gap-1 py-2 sm:py-3">
               <Bell className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-xs">Início</span>
             </TabsTrigger>
@@ -80,7 +79,7 @@ export default function Index() {
               <Stethoscope className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-xs">Médico</span>
             </TabsTrigger>
-            <TabsTrigger value="photos" data-tab="photos" className="flex flex-col gap-1 py-2 sm:py-3">
+            <TabsTrigger value="photos" className="flex flex-col gap-1 py-2 sm:py-3">
               <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-xs">Fotos</span>
             </TabsTrigger>
@@ -90,10 +89,14 @@ export default function Index() {
             </TabsTrigger>
           </TabsList>
 
-          {/* HOME: sem duplicar os cards do topo (fica leve/limpo) */}
-          <TabsContent value="home" className="space-y-6" id="lembretes">
-            {/* Você pode deixar vazio, ou colocar um CTA curto */}
-          </TabsContent>
+          {/* Editor da data da menstruação */}
+          <div className="mt-4">
+            <LmpEditorCard />
+          </div>
+        </div>
+
+        <div className="px-2 sm:px-4 pb-20">
+          <TabsContent value="home" className="space-y-6"></TabsContent>
 
           <TabsContent value="diary" className="space-y-6">
             <MoodDiary />
@@ -117,13 +120,15 @@ export default function Index() {
             <div className="bg-gradient-soft rounded-xl p-4 text-center">
               <h3 className="font-medium mb-2">Compartilhe sua jornada 💕</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Convide família e amigos para acompanhar seus momentos especiais.
+                Convide família e amigos para acompanhar seus momentos especiais
               </p>
               <div className="text-xs text-muted-foreground">🔒 Seus dados estão seguros e privados</div>
             </div>
           </TabsContent>
-        </Tabs>
-      </div>
+        </div>
+      </Tabs>
     </div>
   );
-}
+};
+
+export default Index;
