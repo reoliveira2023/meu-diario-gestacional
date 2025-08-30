@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Bell, Plus, CheckCircle, Clock, Heart, Camera, Scale, Stethoscope, Trash2 } from "lucide-react";
+import { Bell, Plus, CheckCircle, Clock, Heart, Camera, Scale, Stethoscope, Trash2, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CalendarAgenda } from "./CalendarAgenda";
 
 interface DailyReminder {
   id: string;
@@ -39,6 +40,7 @@ export const DailyReminders = () => {
   const [reminders, setReminders] = useState<DailyReminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showCalendarAgenda, setShowCalendarAgenda] = useState(false);
   const [newReminder, setNewReminder] = useState({
     reminder_type: "general",
     title: "",
@@ -275,7 +277,14 @@ export const DailyReminders = () => {
           <div className="text-center py-8 text-muted-foreground">
             <Bell className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>Nenhum lembrete para hoje</p>
-            <p className="text-sm">Adicione lembretes para organizar seu dia</p>
+            <Button
+              variant="link"
+              className="text-sm p-0 h-auto font-normal text-muted-foreground hover:text-primary"
+              onClick={() => setShowCalendarAgenda(true)}
+            >
+              <CalendarDays className="w-4 h-4 mr-1" />
+              Adicione lembretes para organizar seu dia
+            </Button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -335,6 +344,11 @@ export const DailyReminders = () => {
           </div>
         )}
       </CardContent>
+      
+      <CalendarAgenda
+        open={showCalendarAgenda}
+        onOpenChange={setShowCalendarAgenda}
+      />
     </Card>
   );
 };
