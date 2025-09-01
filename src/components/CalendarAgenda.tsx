@@ -40,8 +40,8 @@ const eventTypes = [
 ];
 
 interface CalendarAgendaProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
@@ -62,10 +62,10 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
   });
 
   useEffect(() => {
-    if (open && user) {
+    if (user) {
       fetchEvents();
     }
-  }, [open, user]);
+  }, [user]);
 
   const fetchEvents = async () => {
     if (!user) return;
@@ -212,16 +212,15 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
     .slice(0, 5);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Agenda e Calendário</DialogTitle>
-          <DialogDescription>
-            Gerencie seus eventos e compromissos
-          </DialogDescription>
-        </DialogHeader>
+    <div className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold">Agenda e Calendário</h2>
+        <p className="text-muted-foreground">
+          Gerencie seus eventos e compromissos
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Calendar Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -507,7 +506,6 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
             </Card>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
+      </div>
+    );
+  };
