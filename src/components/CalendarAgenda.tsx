@@ -76,17 +76,30 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
       const endDate = endOfMonth(addMonths(new Date(), 2));
 
       const { data, error } = await supabase
-        .from("calendar_events")
+        .from("daily_reminders")
         .select("*")
         .eq("user_id", user.id)
-        .gte("event_date", format(startDate, "yyyy-MM-dd"))
-        .lte("event_date", format(endDate, "yyyy-MM-dd"))
-        .order("event_date")
+        .gte("reminder_date", format(startDate, "yyyy-MM-dd"))
+        .lte("reminder_date", format(endDate, "yyyy-MM-dd"))
+        .order("reminder_date")
         .order("scheduled_time");
 
       if (error) throw error;
 
-      setEvents(data || []);
+      // Map daily_reminders to CalendarEvent format
+      const mappedEvents: CalendarEvent[] = (data || []).map(reminder => ({
+        id: reminder.id,
+        user_id: reminder.user_id,
+        event_type: reminder.reminder_type || 'appointment',
+        title: reminder.title,
+        description: reminder.description,
+        event_date: reminder.reminder_date || format(new Date(), "yyyy-MM-dd"),
+        scheduled_time: reminder.scheduled_time,
+        is_recurring: false,
+        created_at: reminder.created_at
+      }));
+
+      setEvents(mappedEvents);
     } catch (error) {
       console.error("Error fetching events:", error);
     } finally {
@@ -98,29 +111,20 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
     if (!user || !newEvent.title.trim()) return;
 
     try {
-      if (newEvent.is_recurring) {
-        // Create recurring events
-        const eventsToCreate = generateRecurringEvents();
-        
-        const { error } = await supabase
-          .from("calendar_events")
-          .insert(eventsToCreate);
+      // Create single event in daily_reminders table
+      const { error } = await supabase
+        .from("daily_reminders")
+        .insert({
+          user_id: user.id,
+          title: newEvent.title,
+          description: newEvent.description,
+          reminder_date: newEvent.event_date,
+          scheduled_time: newEvent.scheduled_time,
+          reminder_type: newEvent.event_type,
+          is_completed: false
+        });
 
-        if (error) throw error;
-      } else {
-        // Create single event
-        const { error } = await supabase
-          .from("calendar_events")
-          .insert({
-            user_id: user.id,
-            ...newEvent,
-            is_recurring: false,
-            recurring_type: null,
-            recurring_end_date: null
-          });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       await fetchEvents();
       setNewEvent({
@@ -181,7 +185,7 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
   const deleteEvent = async (id: string) => {
     try {
       const { error } = await supabase
-        .from("calendar_events")
+        .from("daily_reminders")
         .delete()
         .eq("id", id);
 
