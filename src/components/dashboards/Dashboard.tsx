@@ -1,5 +1,5 @@
 import CountdownFromGestation from "./CountdownFromGestation";
-import RemindersCard from "./RemindersCard";
+import RemindersCard from "./AgendaCard";
 import GalleryCard from "./GalleryCard";
 
 export default function Dashboard() {
