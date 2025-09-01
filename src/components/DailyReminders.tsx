@@ -273,9 +273,7 @@ export const DailyReminders = () => {
       </CardHeader>
       
       <CardContent>
-        {reminders.length === 0 ? (
-          <p className="text-muted-foreground">Gerencie seus eventos e compromissos</p>
-        ) : (
+        {reminders.length > 0 && (
           <div className="space-y-3">
             {reminders.map(reminder => {
               const typeInfo = getTypeInfo(reminder.reminder_type);

@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Baby, Calendar, Clock, Bell, Images } from "lucide-react";
+import { Baby, Calendar, Clock, Images, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useGestation } from "@/hooks/useGestation";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 // util: Date -> "YYYY-MM-DD" (sem fuso)
 function toYMD(d: Date) {
@@ -20,12 +22,46 @@ function toYMD(d: Date) {
 
 export default function NewDashboard() {
   const { loading, lmpYmd, saveLmpDate, calc } = useGestation();
+  const { user } = useAuth();
 
   // controle do popover de edição
   const [open, setOpen] = useState(false);
   const [tempDate, setTempDate] = useState<Date | undefined>(lmpYmd ? new Date(lmpYmd) : undefined);
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  
+  // estado para próximos eventos
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+
+  // buscar próximos eventos
+  useEffect(() => {
+    if (user) {
+      fetchUpcomingEvents();
+    }
+  }, [user]);
+
+  const fetchUpcomingEvents = async () => {
+    if (!user) return;
+
+    try {
+      const today = format(new Date(), "yyyy-MM-dd");
+      
+      const { data, error } = await supabase
+        .from("daily_reminders")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("reminder_date", today)
+        .order("reminder_date")
+        .order("scheduled_time")
+        .limit(3);
+
+      if (error) throw error;
+
+      setUpcomingEvents(data || []);
+    } catch (error) {
+      console.error("Error fetching upcoming events:", error);
+    }
+  };
 
   // abrir direto se a URL vier com #editar-lmp
   useEffect(() => {
@@ -161,41 +197,52 @@ export default function NewDashboard() {
         </CardContent>
       </Card>
 
-      {/* CARD: Lembretes do dia (resumo) */}
+      {/* CARD: Agenda/Calendário */}
       <Card className="border-0 shadow-[var(--shadow-card)]">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-primary" />
-            Lembretes de Hoje
+            <Calendar className="w-5 h-5 text-primary" />
+            Agenda
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Organize seus lembretes do dia sem sair desta tela.
+            Gerencie seus eventos e compromissos
           </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
+          
+          {/* Próximos eventos */}
+          {upcomingEvents.length === 0 ? (
+            <div className="text-center py-4">
+              <CalendarDays className="w-8 h-8 mx-auto mb-2 opacity-50 text-muted-foreground" />
+              <p className="text-xs text-muted-foreground">Nenhum evento próximo</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">Próximos Eventos</h4>
+              {upcomingEvents.map(event => (
+                <div key={event.id} className="flex items-center gap-2 p-2 rounded bg-muted/30">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{event.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(event.reminder_date), "dd/MM/yyyy")} às {event.scheduled_time.slice(0, 5)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <div className="flex gap-2 pt-2">
+            <Button 
+              variant="outline" 
+              size="sm"
               onClick={() => {
-                // abre a aba "home", caso você use Tabs por hash, ajuste aqui
-                const el = document.querySelector('[data-tab="home"]') as HTMLButtonElement | null;
-                el?.click();
-                // rolar até sua seção de lembretes, se houver um id
-                const section = document.getElementById("lembretes");
-                section?.scrollIntoView({ behavior: "smooth" });
+                // navegar para a aba de calendário completo
+                const calendarTab = document.querySelector('[data-tab="home"]') as HTMLButtonElement | null;
+                calendarTab?.click();
               }}
             >
-              Abrir Lembretes
-            </Button>
-            <Button
-              onClick={() => {
-                const addBtn = document.querySelector(
-                  '[data-testid="add-reminder"]'
-                ) as HTMLButtonElement | null;
-                addBtn?.click();
-              }}
-            >
-              + Adicionar
+              Ver Calendário
             </Button>
           </div>
         </CardContent>
