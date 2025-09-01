@@ -274,18 +274,7 @@ export const DailyReminders = () => {
       
       <CardContent>
         {reminders.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Bell className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Nenhum lembrete para hoje</p>
-            <Button
-              variant="link"
-              className="text-sm p-0 h-auto font-normal text-muted-foreground hover:text-primary"
-              onClick={() => setShowCalendarAgenda(true)}
-            >
-              <CalendarDays className="w-4 h-4 mr-1" />
-              Adicione lembretes para organizar seu dia
-            </Button>
-          </div>
+          <p className="text-muted-foreground">Gerencie seus eventos e compromissos</p>
         ) : (
           <div className="space-y-3">
             {reminders.map(reminder => {
