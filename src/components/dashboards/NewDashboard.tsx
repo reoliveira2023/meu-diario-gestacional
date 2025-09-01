@@ -8,9 +8,10 @@ import { Baby, Calendar, Clock, Images } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useGestation } from "@/hooks/useGestation";
-import CalendarAgenda from "@/components/CalendarAgenda"; // <<-- usa sua Agenda/Calendário
 
-// util: Date -> "YYYY-MM-DD" (sem fuso)
+// 👇 troque RemindersCard por AgendaCard
+import AgendaCard from "@/components/dashboards/AgendaCard";
+
 function toYMD(d: Date) {
   return [
     d.getFullYear(),
@@ -21,16 +22,11 @@ function toYMD(d: Date) {
 
 export default function NewDashboard() {
   const { loading, lmpYmd, saveLmpDate, calc } = useGestation();
-
-  // controle do popover de edição
   const [open, setOpen] = useState(false);
-  const [tempDate, setTempDate] = useState<Date | undefined>(
-    lmpYmd ? new Date(lmpYmd) : undefined
-  );
+  const [tempDate, setTempDate] = useState<Date | undefined>(lmpYmd ? new Date(lmpYmd) : undefined);
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
 
-  // abrir direto se a URL vier com #editar-lmp
   useEffect(() => {
     if (window.location.hash === "#editar-lmp") {
       setOpen(true);
@@ -38,19 +34,14 @@ export default function NewDashboard() {
     }
   }, []);
 
-  // mantém o tempDate sincronizado quando carregar do banco
   useEffect(() => {
     if (lmpYmd) setTempDate(new Date(lmpYmd));
   }, [lmpYmd]);
 
-  // derivados para exibição
   const week = calc?.week ?? 0;
   const due = calc?.due;
   const daysRemaining = Math.max(0, calc?.daysRemaining ?? 0);
-  const progressPct = useMemo(
-    () => Math.min(Math.round((week / 40) * 100), 100),
-    [week]
-  );
+  const progressPct = useMemo(() => Math.min(Math.round((week / 40) * 100), 100), [week]);
   const trimester =
     week <= 13 ? "1º Trimestre 🌱" : week <= 28 ? "2º Trimestre 🌸" : "3º Trimestre 🌺";
 
@@ -69,120 +60,85 @@ export default function NewDashboard() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {/* CARD GRANDE: Gestação (coluna 1-2) */}
-      <Card className="lg:col-span-2 border-0 shadow-[var(--shadow-card)] bg-gradient-soft">
+      {/* ESQUERDA: Gestação */}
+      <Card className="lg:col-span-1 border-0 shadow-[var(--shadow-card)] bg-gradient-soft">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
             <Baby className="w-5 h-5 text-primary" />
             Semana Gestacional
           </CardTitle>
         </CardHeader>
-
         <CardContent className="space-y-6">
-          {/* Cabeçalho da semana / DPP */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="rounded-2xl bg-white/70 p-4 text-center">
-              <div className="text-3xl font-bold text-primary">{week || "—"}ª semana</div>
-              <div className="text-sm text-muted-foreground">{trimester}</div>
-            </div>
+          <div className="rounded-2xl bg-white/70 p-4">
+            <div className="text-3xl font-bold text-primary">{week || "—"}ª semana</div>
+            <div className="text-sm text-muted-foreground">{trimester}</div>
 
-            <div className="rounded-2xl bg-white/70 p-4 text-center">
+            <div className="mt-4">
               <div className="text-xs text-muted-foreground mb-1">Data Provável do Parto</div>
               <div className="text-lg font-semibold">
                 {due ? format(due, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "—"}
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white/70 p-4">
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-primary" />
-                  Dias restantes
-                </span>
-                <span className="text-lg font-semibold text-primary">{daysRemaining}</span>
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Progresso da gestação</span>
+                <span>{progressPct}%</span>
               </div>
-
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Progresso da gestação</span>
-                  <span>{progressPct}%</span>
-                </div>
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-2 bg-gradient-to-r from-pink-400 via-pink-500 to-purple-400 transition-all duration-500"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
+              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-2 bg-gradient-to-r from-pink-400 via-pink-500 to-purple-400 transition-all duration-500"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+              <div className="text-right text-xs text-muted-foreground">
+                {daysRemaining} dias restantes
               </div>
             </div>
-          </div>
 
-          {/* Ação: editar LMP */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="bg-white" data-testid="btn-editar-lmp">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  {lmpYmd
-                    ? `Editar data da menstruação (${format(new Date(lmpYmd), "dd/MM/yyyy", {
-                        locale: ptBR,
-                      })})`
-                    : "Definir data da última menstruação"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-3" align="start">
-                <div className="text-sm font-medium mb-2">Selecione a data</div>
-                <CalendarComponent
-                  mode="single"
-                  selected={tempDate}
-                  onSelect={(d) => setTempDate(d || undefined)}
-                  disabled={(d) => d > new Date()}
-                  initialFocus
-                />
-                <div className="mt-3 flex gap-2">
-                  <Button size="sm" onClick={handleSave} disabled={!tempDate || saving}>
-                    {saving ? "Salvando..." : "Salvar"}
+            <div className="mt-4">
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="bg-white" data-testid="btn-editar-lmp">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    {lmpYmd
+                      ? `Editar data (${format(new Date(lmpYmd), "dd/MM/yyyy", { locale: ptBR })})`
+                      : "Definir data da última menstruação"}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={saving}>
-                    Cancelar
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            {justSaved && <span className="text-xs text-green-600">✅ Data salva com sucesso!</span>}
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="start">
+                  <div className="text-sm font-medium mb-2">Selecione a data</div>
+                  <CalendarComponent
+                    mode="single"
+                    selected={tempDate}
+                    onSelect={(d) => setTempDate(d || undefined)}
+                    disabled={(d) => d > new Date()}
+                    initialFocus
+                  />
+                  <div className="mt-3 flex gap-2">
+                    <Button size="sm" onClick={handleSave} disabled={!tempDate || saving}>
+                      {saving ? "Salvando..." : "Salvar"}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={saving}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              {justSaved && (
+                <span className="ml-2 text-xs text-green-600">✅ Data salva com sucesso!</span>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* CARD: Agenda + Calendário (substitui Lembretes) */}
-      <Card className="border-0 shadow-[var(--shadow-card)] lg:col-span-1">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-primary" />
-            Agenda
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-muted-foreground">Gerencie seus eventos e compromissos</p>
-          {/* Mostra seu componente de calendário/agenda */}
-          <CalendarAgenda />
+      {/* MEIO: Agenda (somente agenda, sem “Lembretes de Hoje”) */}
+      <div className="lg:col-span-1">
+        <AgendaCard />
+      </div>
 
-          {/* Se quiser, mostre também próximos eventos (exemplo simples) */}
-          {/* 
-          <div className="mt-4">
-            <div className="text-sm font-medium mb-2">Próximos eventos</div>
-            <ul className="space-y-1 text-sm text-muted-foreground">
-              <li>• Consulta pré-natal — 03/09</li>
-              <li>• Ultrassom — 10/09</li>
-              <li>• Exame de sangue — 17/09</li>
-            </ul>
-          </div>
-          */}
-        </CardContent>
-      </Card>
-
-      {/* CARD: Galeria (permanece) */}
+      {/* DIREITA: Galeria (seu card atual) */}
       <Card className="lg:col-span-1 border-0 shadow-[var(--shadow-card)]">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
@@ -190,33 +146,8 @@ export default function NewDashboard() {
             Galeria de Momentos
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Veja e adicione fotos dos momentos especiais.
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                const el = document.querySelector(
-                  '[data-tab="photos"]'
-                ) as HTMLButtonElement | null;
-                el?.click();
-              }}
-            >
-              Abrir Galeria
-            </Button>
-            <Button
-              onClick={() => {
-                const uploadBtn = document.querySelector(
-                  '[data-testid="upload-photo"]'
-                ) as HTMLButtonElement | null;
-                uploadBtn?.click();
-              }}
-            >
-              + Enviar foto
-            </Button>
-          </div>
+        <CardContent>
+          {/* aqui fica seu conteúdo da galeria/atalhos */}
         </CardContent>
       </Card>
     </div>
