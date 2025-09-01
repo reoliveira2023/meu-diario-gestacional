@@ -4,12 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Baby, Calendar, Clock, Images, CalendarDays } from "lucide-react";
+import { Baby, Calendar, Clock, Images } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useGestation } from "@/hooks/useGestation";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import CalendarAgenda from "@/components/CalendarAgenda"; // <<-- usa sua Agenda/Calendário
 
 // util: Date -> "YYYY-MM-DD" (sem fuso)
 function toYMD(d: Date) {
@@ -22,68 +21,36 @@ function toYMD(d: Date) {
 
 export default function NewDashboard() {
   const { loading, lmpYmd, saveLmpDate, calc } = useGestation();
-  const { user } = useAuth();
 
   // controle do popover de edição
   const [open, setOpen] = useState(false);
-  const [tempDate, setTempDate] = useState<Date | undefined>(lmpYmd ? new Date(lmpYmd) : undefined);
+  const [tempDate, setTempDate] = useState<Date | undefined>(
+    lmpYmd ? new Date(lmpYmd) : undefined
+  );
   const [saving, setSaving] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
-  
-  // estado para próximos eventos
-  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
-
-  // buscar próximos eventos
-  useEffect(() => {
-    if (user) {
-      fetchUpcomingEvents();
-    }
-  }, [user]);
-
-  const fetchUpcomingEvents = async () => {
-    if (!user) return;
-
-    try {
-      const today = format(new Date(), "yyyy-MM-dd");
-      
-      const { data, error } = await supabase
-        .from("daily_reminders")
-        .select("*")
-        .eq("user_id", user.id)
-        .gte("reminder_date", today)
-        .order("reminder_date")
-        .order("scheduled_time")
-        .limit(3);
-
-      if (error) throw error;
-
-      setUpcomingEvents(data || []);
-    } catch (error) {
-      console.error("Error fetching upcoming events:", error);
-    }
-  };
 
   // abrir direto se a URL vier com #editar-lmp
   useEffect(() => {
     if (window.location.hash === "#editar-lmp") {
       setOpen(true);
-      // limpa o hash para não reabrir depois
       history.replaceState(null, "", " ");
     }
   }, []);
 
   // mantém o tempDate sincronizado quando carregar do banco
   useEffect(() => {
-    if (lmpYmd) {
-      setTempDate(new Date(lmpYmd));
-    }
+    if (lmpYmd) setTempDate(new Date(lmpYmd));
   }, [lmpYmd]);
 
   // derivados para exibição
   const week = calc?.week ?? 0;
   const due = calc?.due;
   const daysRemaining = Math.max(0, calc?.daysRemaining ?? 0);
-  const progressPct = useMemo(() => Math.min(Math.round((week / 40) * 100), 100), [week]);
+  const progressPct = useMemo(
+    () => Math.min(Math.round((week / 40) * 100), 100),
+    [week]
+  );
   const trimester =
     week <= 13 ? "1º Trimestre 🌱" : week <= 28 ? "2º Trimestre 🌸" : "3º Trimestre 🌺";
 
@@ -102,7 +69,7 @@ export default function NewDashboard() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {/* CARD GRANDE: Gestação */}
+      {/* CARD GRANDE: Gestação (coluna 1-2) */}
       <Card className="lg:col-span-2 border-0 shadow-[var(--shadow-card)] bg-gradient-soft">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
@@ -157,11 +124,9 @@ export default function NewDashboard() {
                 <Button variant="outline" className="bg-white" data-testid="btn-editar-lmp">
                   <Calendar className="w-4 h-4 mr-2" />
                   {lmpYmd
-                    ? `Editar data da menstruação (${format(
-                        new Date(lmpYmd),
-                        "dd/MM/yyyy",
-                        { locale: ptBR }
-                      )})`
+                    ? `Editar data da menstruação (${format(new Date(lmpYmd), "dd/MM/yyyy", {
+                        locale: ptBR,
+                      })})`
                     : "Definir data da última menstruação"}
                 </Button>
               </PopoverTrigger>
@@ -178,27 +143,20 @@ export default function NewDashboard() {
                   <Button size="sm" onClick={handleSave} disabled={!tempDate || saving}>
                     {saving ? "Salvando..." : "Salvar"}
                   </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setOpen(false)}
-                    disabled={saving}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={saving}>
                     Cancelar
                   </Button>
                 </div>
               </PopoverContent>
             </Popover>
 
-            {justSaved && (
-              <span className="text-xs text-green-600">✅ Data salva com sucesso!</span>
-            )}
+            {justSaved && <span className="text-xs text-green-600">✅ Data salva com sucesso!</span>}
           </div>
         </CardContent>
       </Card>
 
-      {/* CARD: Agenda/Calendário */}
-      <Card className="border-0 shadow-[var(--shadow-card)]">
+      {/* CARD: Agenda + Calendário (substitui Lembretes) */}
+      <Card className="border-0 shadow-[var(--shadow-card)] lg:col-span-1">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-primary" />
@@ -206,49 +164,25 @@ export default function NewDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Gerencie seus eventos e compromissos
-          </p>
-          
-          {/* Próximos eventos */}
-          {upcomingEvents.length === 0 ? (
-            <div className="text-center py-4">
-              <CalendarDays className="w-8 h-8 mx-auto mb-2 opacity-50 text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">Nenhum evento próximo</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Próximos Eventos</h4>
-              {upcomingEvents.map(event => (
-                <div key={event.id} className="flex items-center gap-2 p-2 rounded bg-muted/30">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{event.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(event.reminder_date), "dd/MM/yyyy")} às {event.scheduled_time.slice(0, 5)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          <div className="flex gap-2 pt-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                // navegar para a aba de calendário completo
-                const calendarTab = document.querySelector('[data-tab="home"]') as HTMLButtonElement | null;
-                calendarTab?.click();
-              }}
-            >
-              Ver Calendário
-            </Button>
+          <p className="text-muted-foreground">Gerencie seus eventos e compromissos</p>
+          {/* Mostra seu componente de calendário/agenda */}
+          <CalendarAgenda />
+
+          {/* Se quiser, mostre também próximos eventos (exemplo simples) */}
+          {/* 
+          <div className="mt-4">
+            <div className="text-sm font-medium mb-2">Próximos eventos</div>
+            <ul className="space-y-1 text-sm text-muted-foreground">
+              <li>• Consulta pré-natal — 03/09</li>
+              <li>• Ultrassom — 10/09</li>
+              <li>• Exame de sangue — 17/09</li>
+            </ul>
           </div>
+          */}
         </CardContent>
       </Card>
 
-      {/* CARD: Galeria (resumo) */}
+      {/* CARD: Galeria (permanece) */}
       <Card className="lg:col-span-1 border-0 shadow-[var(--shadow-card)]">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2">
@@ -264,8 +198,9 @@ export default function NewDashboard() {
             <Button
               variant="outline"
               onClick={() => {
-                // abra a aba de Fotos; ajuste conforme seu Tabs
-                const el = document.querySelector('[data-tab="photos"]') as HTMLButtonElement | null;
+                const el = document.querySelector(
+                  '[data-tab="photos"]'
+                ) as HTMLButtonElement | null;
                 el?.click();
               }}
             >
