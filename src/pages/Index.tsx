@@ -16,8 +16,8 @@ import { Heart, Camera, Stethoscope, Baby, LogOut, User, Bell } from "lucide-rea
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
+// ✅ importa explicitamente o novo componente
 import NewDashboard from "@/components/dashboards/NewDashboard";
-import LmpEditorCard from "@/components/dashboards/LmpEditorCard";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -40,34 +40,35 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {/* Header */}
-        <div className="bg-gradient-maternal px-2 sm:px-4 py-4">
-          <div className="flex justify-between items-center mb-4">
-            <MaternaHeader />
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" className="text-white text-xs sm:text-sm">
-                <User className="h-4 w-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">{user.email?.split("@")[0]}</span>
-              </Button>
-              <Button variant="outline" size="sm" onClick={signOut} className="text-xs sm:text-sm">
-                <LogOut className="h-4 w-4 mr-1 sm:mr-2" />
-                Sair
-              </Button>
-            </div>
+      {/* Header */}
+      <div className="bg-gradient-maternal px-2 sm:px-4 py-4">
+        <div className="flex justify-between items-center mb-4">
+          <MaternaHeader />
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="text-white text-xs sm:text-sm">
+              <User className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">{user.email?.split("@")[0]}</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={signOut} className="text-xs sm:text-sm">
+              <LogOut className="h-4 w-4 mr-1 sm:mr-2" />
+              Sair
+            </Button>
           </div>
+        </div>
 
-          {/* Insights rápidos */}
-          <div className="mb-4">
-            <DashboardInsights />
-          </div>
+        {/* Insights rápidos */}
+        <div className="mb-4">
+          <DashboardInsights />
+        </div>
 
-          {/* Cards do topo */}
-          <Dashboard />
+        {/* 🔥 Novo topo reorganizado */}
+        <NewDashboard />
+      </div>
 
-          {/* Menu de navegação logo abaixo dos cards */}
-          <TabsList className="grid w-full grid-cols-5 mb-4 bg-card/50 backdrop-blur-sm mt-4">
-            <TabsTrigger value="home" className="flex flex-col gap-1 py-2 sm:py-3">
+      <div className="px-2 sm:px-4 pb-20">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 mb-6 bg-card/50 backdrop-blur-sm sticky top-4 z-10">
+            <TabsTrigger value="home" className="flex flex-col gap-1 py-2 sm:py-3" data-tab="home">
               <Bell className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-xs">Início</span>
             </TabsTrigger>
@@ -79,7 +80,7 @@ const Index = () => {
               <Stethoscope className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-xs">Médico</span>
             </TabsTrigger>
-            <TabsTrigger value="photos" className="flex flex-col gap-1 py-2 sm:py-3">
+            <TabsTrigger value="photos" className="flex flex-col gap-1 py-2 sm:py-3" data-tab="photos">
               <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="text-xs">Fotos</span>
             </TabsTrigger>
@@ -89,30 +90,19 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Editor da data da menstruação */}
-          <div className="mt-4">
-            <LmpEditorCard />
-          </div>
-        </div>
-
-        <div className="px-2 sm:px-4 pb-20">
-          <TabsContent value="home" className="space-y-6"></TabsContent>
-
+          <TabsContent value="home" className="space-y-6" />
           <TabsContent value="diary" className="space-y-6">
             <MoodDiary />
             <BabyLetters />
           </TabsContent>
-
           <TabsContent value="medical" className="space-y-6">
             <MedicalExamsTracker />
             <WeightChart />
           </TabsContent>
-
           <TabsContent value="photos" className="space-y-6">
             <PhotoGallery />
             <PregnancyTimelineInteractive />
           </TabsContent>
-
           <TabsContent value="more" className="space-y-6">
             <BabyNamesGenerator />
             <BabyShoppingList />
@@ -125,8 +115,8 @@ const Index = () => {
               <div className="text-xs text-muted-foreground">🔒 Seus dados estão seguros e privados</div>
             </div>
           </TabsContent>
-        </div>
-      </Tabs>
+        </Tabs>
+      </div>
     </div>
   );
 };
