@@ -1,3 +1,4 @@
+// src/components/dashboards/Dashboard.tsx
 import CountdownFromGestation from "./CountdownFromGestation";
 import RemindersCard from "./AgendaCard";
 import GalleryCard from "./GalleryCard";
@@ -17,3 +18,4 @@ export default function Dashboard() {
     </div>
   );
 }
+
