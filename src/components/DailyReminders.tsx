@@ -1,19 +1,22 @@
-import { useEffect, useState } from "react";
+// src/components/DailyReminders.tsx
+import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2, Calendar, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Bell, Plus, CheckCircle, Clock, Heart, Camera, Scale, Stethoscope, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { format, addDays } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
-// ⚠️ Use default import do seu componente de Agenda
-// Se no seu projeto for export nomeado, troque para:  import { CalendarAgenda } from "@/components/CalendarAgenda";
-import CalendarAgenda from "@/components/CalendarAgenda";
+// ✅ IMPORT CORRIGIDO (export nomeado)
+import { CalendarAgenda } from "@/components/CalendarAgenda";
 
 interface DailyReminder {
   id: string;
@@ -21,102 +24,129 @@ interface DailyReminder {
   reminder_type: string;
   title: string;
   description?: string;
-  scheduled_time: string; // "HH:mm" (string)
+  scheduled_time: string;
   is_completed: boolean;
-  reminder_date: string;  // "YYYY-MM-DD"
+  reminder_date: string;
 }
 
-const TYPE_MAP: Record<
-  string,
-  { label: string; className: string }
-> = {
-  mood: { label: "Humor", className: "bg-primary/20 text-primary" },
-  weight: { label: "Peso", className: "bg-secondary/20 text-secondary" },
-  photo: { label: "Foto", className: "bg-accent/20 text-accent" },
-  medical: { label: "Médico", className: "bg-maternal-blue/20 text-maternal-blue" },
-  general: { label: "Geral", className: "bg-muted/20 text-muted-foreground" },
-};
+const reminderTypes = [
+  { value: "mood",    label: "Humor",  icon: Heart,       color: "bg-primary/20 text-primary" },
+  { value: "weight",  label: "Peso",   icon: Scale,       color: "bg-secondary/20 text-secondary" },
+  { value: "photo",   label: "Foto",   icon: Camera,      color: "bg-accent/20 text-accent" },
+  { value: "medical", label: "Médico", icon: Stethoscope, color: "bg-maternal-blue/20 text-maternal-blue" },
+  { value: "general", label: "Geral",  icon: Bell,        color: "bg-muted/20 text-muted-foreground" },
+];
 
 export const DailyReminders = () => {
   const { user } = useAuth();
-
-  // Vamos exibir "Próximos eventos" com base na tabela daily_reminders pelos próximos 7 dias.
-  const [upcoming, setUpcoming] = useState<DailyReminder[]>([]);
+  const [reminders, setReminders] = useState<DailyReminder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showCalendarAgenda, setShowCalendarAgenda] = useState(false);
+  const [newReminder, setNewReminder] = useState({
+    reminder_type: "general",
+    title: "",
+    description: "",
+    scheduled_time: "09:00",
+  });
 
   useEffect(() => {
-    fetchUpcoming();
+    fetchTodayReminders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  async function fetchUpcoming() {
+  const fetchTodayReminders = async () => {
     if (!user) return;
-
     try {
-      setLoading(true);
       const today = format(new Date(), "yyyy-MM-dd");
-      const until = format(addDays(new Date(), 7), "yyyy-MM-dd");
-
       const { data, error } = await supabase
         .from("daily_reminders")
         .select("*")
         .eq("user_id", user.id)
-        .gte("reminder_date", today)
-        .lte("reminder_date", until)
-        .order("reminder_date", { ascending: true })
-        .order("scheduled_time", { ascending: true });
-
+        .eq("reminder_date", today)
+        .order("scheduled_time");
       if (error) throw error;
-      setUpcoming(data ?? []);
-    } catch (err) {
-      console.error("[DailyReminders] fetchUpcoming error:", err);
+      setReminders(data || []);
+    } catch (error) {
+      console.error("Error fetching reminders:", error);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  async function toggleReminderComplete(id: string, current: boolean) {
+  const createReminder = async () => {
+    if (!user || !newReminder.title.trim()) return;
+    try {
+      const { data, error } = await supabase
+        .from("daily_reminders")
+        .insert({
+          user_id: user.id,
+          ...newReminder,
+          reminder_date: format(new Date(), "yyyy-MM-dd"),
+        })
+        .select()
+        .single();
+      if (error) throw error;
+
+      setReminders((prev) => [...prev, data]);
+      setNewReminder({
+        reminder_type: "general",
+        title: "",
+        description: "",
+        scheduled_time: "09:00",
+      });
+      setShowAddDialog(false);
+      toast.success("Lembrete criado!");
+    } catch (error) {
+      console.error("Error creating reminder:", error);
+      toast.error("Erro ao criar lembrete");
+    }
+  };
+
+  const toggleReminderComplete = async (id: string, isCompleted: boolean) => {
     try {
       const { error } = await supabase
         .from("daily_reminders")
-        .update({ is_completed: !current })
+        .update({ is_completed: !isCompleted })
         .eq("id", id);
-
       if (error) throw error;
 
-      setUpcoming((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, is_completed: !current } : r))
+      setReminders((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, is_completed: !isCompleted } : r))
       );
     } catch (error) {
-      console.error("[DailyReminders] toggleReminderComplete error:", error);
-      toast.error("Erro ao atualizar evento");
+      console.error("Error updating reminder:", error);
+      toast.error("Erro ao atualizar lembrete");
     }
-  }
+  };
 
-  async function deleteReminder(id: string) {
+  const deleteReminder = async (id: string) => {
     try {
       const { error } = await supabase.from("daily_reminders").delete().eq("id", id);
       if (error) throw error;
-
-      setUpcoming((prev) => prev.filter((r) => r.id !== id));
-      toast.success("Evento removido!");
+      setReminders((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Lembrete removido!");
     } catch (error) {
-      console.error("[DailyReminders] deleteReminder error:", error);
-      toast.error("Erro ao remover evento");
+      console.error("Error deleting reminder:", error);
+      toast.error("Erro ao remover lembrete");
     }
-  }
+  };
 
-  // 🔁 Formatação para exibir data + hora
-  function formatHumanDate(dateYmd: string, time?: string) {
-    try {
-      const [year, month, day] = dateYmd.split("-").map(Number);
-      const d = new Date(year, (month ?? 1) - 1, day ?? 1);
-      const base = format(d, "EEE, dd 'de' MMM", { locale: ptBR });
-      return time ? `${base} • ${time.slice(0, 5)}` : base;
-    } catch {
-      return dateYmd;
+  const getTypeInfo = (type: string) =>
+    reminderTypes.find((t) => t.value === type) || reminderTypes[4];
+
+  const completedCount = reminders.filter((r) => r.is_completed).length;
+  const progressPercentage = reminders.length
+    ? (completedCount / reminders.length) * 100
+    : 0;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
     }
-  }
 
   return (
     <Card>
@@ -124,97 +154,189 @@ export const DailyReminders = () => {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Agenda
+              <Bell className="w-5 h-5" />
+              Lembretes de Hoje
             </CardTitle>
             <CardDescription>
               {format(new Date(), "EEEE, dd 'de' MMMM", { locale: ptBR })}
             </CardDescription>
           </div>
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Criar Novo Lembrete</DialogTitle>
+                <DialogDescription>
+                  Adicione um lembrete para não esquecer de registrar suas informações
+                </DialogDescription>
+              </DialogHeader>
 
-          {/* Se seu CalendarAgenda abrir em modal via trigger, você pode colocar um botão aqui:
-          <Button size="sm" onClick={() => setShowCalendarAgenda(true)}>
-            Abrir Calendário
-          </Button>
-          */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="type">Tipo</Label>
+                  <Select
+                    value={newReminder.reminder_type}
+                    onValueChange={(value) =>
+                      setNewReminder((prev) => ({ ...prev, reminder_type: value }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {reminderTypes.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          <div className="flex items-center gap-2">
+                            <type.icon className="w-4 h-4" />
+                            {type.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="title">Título</Label>
+                  <Input
+                    id="title"
+                    value={newReminder.title}
+                    onChange={(e) =>
+                      setNewReminder((prev) => ({ ...prev, title: e.target.value }))
+                    }
+                    placeholder="Ex: Registrar humor matinal"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Descrição (opcional)</Label>
+                  <Textarea
+                    id="description"
+                    value={newReminder.description}
+                    onChange={(e) =>
+                      setNewReminder((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
+                    placeholder="Detalhes sobre o lembrete..."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="time">Horário</Label>
+                  <Input
+                    id="time"
+                    type="time"
+                    value={newReminder.scheduled_time}
+                    onChange={(e) =>
+                      setNewReminder((prev) => ({
+                        ...prev,
+                        scheduled_time: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <Button onClick={createReminder} className="w-full">
+                  Criar Lembrete
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
+
+        {reminders.length > 0 && (
+          <div className="mt-4 p-3 bg-muted/30 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Progresso do Dia</span>
+              <span className="text-sm text-muted-foreground">
+                {completedCount}/{reminders.length}
+              </span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+            {progressPercentage === 100 && (
+              <p className="text-sm text-primary font-medium mt-2 flex items-center gap-1">
+                <CheckCircle className="w-4 h-4" />
+                Parabéns! Todos os lembretes concluídos! 🎉
+              </p>
+            )}
+          </div>
+        )}
       </CardHeader>
 
-      <CardContent className="space-y-6">
-        {/* Calendário/Agenda no lugar dos lembretes */}
-        <div>
-          {/* Renderização inline do calendário/agenda */}
-          <CalendarAgenda />
-        </div>
+      <CardContent>
+        {reminders.length > 0 && (
+          <div className="space-y-3">
+            {reminders.map((reminder) => {
+              const typeInfo = getTypeInfo(reminder.reminder_type);
+              const Icon = typeInfo.icon;
 
-        {/* Próximos eventos (7 dias) */}
-        <div>
-          <div className="text-sm font-medium mb-2">Próximos eventos (7 dias)</div>
+              return (
+                <div
+                  key={reminder.id}
+                  className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${
+                    reminder.is_completed ? "bg-muted/30 opacity-60" : "bg-background hover:bg-muted/20"
+                  }`}
+                >
+                  <Checkbox
+                    checked={reminder.is_completed}
+                    onCheckedChange={() =>
+                      toggleReminderComplete(reminder.id, reminder.is_completed)
+                    }
+                    className="mt-1"
+                  />
 
-          {loading ? (
-            <div className="flex items-center justify-center py-6">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
-            </div>
-          ) : upcoming.length === 0 ? (
-            // ✅ Removido o estado vazio com ícone de sino — nada de "Nenhum lembrete" aqui.
-            <div className="text-sm text-muted-foreground">
-              Sem eventos agendados nos próximos dias.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {upcoming.map((r) => {
-                const type = TYPE_MAP[r.reminder_type] ?? TYPE_MAP.general;
-                return (
-                  <div
-                    key={r.id}
-                    className={`flex items-start gap-3 p-3 rounded-lg border transition-all ${
-                      r.is_completed ? "bg-muted/30 opacity-75" : "bg-background hover:bg-muted/20"
-                    }`}
-                  >
-                    <Checkbox
-                      checked={r.is_completed}
-                      onCheckedChange={() => toggleReminderComplete(r.id, r.is_completed)}
-                      className="mt-1"
-                    />
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline" className={type.className}>
-                          {type.label}
-                        </Badge>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          {formatHumanDate(r.reminder_date, r.scheduled_time)}
-                        </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className={typeInfo.color}>
+                        <Icon className="w-3 h-3 mr-1" />
+                        {typeInfo.label}
+                      </Badge>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="w-3 h-3" />
+                        {reminder.scheduled_time.slice(0, 5)}
                       </div>
-
-                      <h4 className={`font-medium ${r.is_completed ? "line-through" : ""}`}>
-                        {r.title}
-                      </h4>
-
-                      {r.description && (
-                        <p className="text-sm text-muted-foreground mt-1">{r.description}</p>
-                      )}
                     </div>
 
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteReminder(r.id)}
-                      className="text-muted-foreground hover:text-destructive"
-                      aria-label="Remover evento"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <h4 className={`font-medium ${reminder.is_completed ? "line-through" : ""}`}>
+                      {reminder.title}
+                    </h4>
+
+                    {reminder.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {reminder.description}
+                      </p>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteReminder(reminder.id)}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
+
+      <CalendarAgenda open={showCalendarAgenda} onOpenChange={setShowCalendarAgenda} />
     </Card>
   );
 };
-
-export default DailyReminders;
