@@ -16,7 +16,7 @@ import { Heart, Camera, Stethoscope, Baby, LogOut, User, Bell } from "lucide-rea
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
-import Dashboard from "@/components/dashboards/Dashboard";
+import Dashboard from "@/components/dashboards/NewDashboard";
 import LmpEditorCard from "@/components/dashboards/LmpEditorCard";
 
 const Index = () => {
