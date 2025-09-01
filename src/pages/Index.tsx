@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 // ✅ importa explicitamente o novo componente
-import NewDashboard from "@/components/dashboards/NewDashboard";
+import Dashboard from "@/components/dashboards/Dashboard";
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
