@@ -46,28 +46,40 @@ Paleta emocional com tons pastel: rosé, lavanda, verde água
     --input: 330 12% 92%;
     --ring: 340 35% 75%;
 
-    /* Cores especiais da gestação */
-    --maternal-pink: 340 35% 75%;
-    --baby-blue: 200 30% 85%;
-    --soft-lavender: 280 20% 88%;
-    --mint-green: 160 25% 85%;
-    --warm-peach: 20 35% 88%;
+    /* Cores especiais do MaternaApp - paleta delicada e acolhedora */
+    --maternal-pink: 343 100% 94%;      /* #fdedf2 - rosé ainda mais suave */
+    --baby-blue: 212 100% 92%;          /* #e6f0ff - azul bebê mais delicado */
+    --soft-lavender: 267 60% 93%;       /* #f0e8f7 - lavanda etérea */
+    --mint-green: 152 50% 92%;          /* #e8f5f0 - verde menta cristalino */
+    --warm-peach: 21 100% 94%;          /* #fef2e8 - pêssego aveludado */
+    --blush-rose: 340 80% 96%;          /* #fdf0f3 - rosa blush */
+    --powder-blue: 205 100% 96%;        /* #f0f8ff - azul talco */
     
-    /* Gradientes emocionais */
-    --gradient-maternal: linear-gradient(135deg, hsl(340 35% 75%), hsl(280 20% 88%));
-    --gradient-soft: linear-gradient(180deg, hsl(350 25% 97%), hsl(350 15% 98%));
-    --gradient-baby: linear-gradient(45deg, hsl(200 30% 85%), hsl(160 25% 85%));
+    /* Gradientes mais suaves e envolventes */
+    --gradient-maternal: linear-gradient(135deg, hsl(var(--blush-rose)) 0%, hsl(var(--soft-lavender)) 30%, hsl(var(--powder-blue)) 70%, hsl(var(--mint-green)) 100%);
+    --gradient-soft: linear-gradient(145deg, hsl(var(--background)) 0%, hsl(var(--maternal-pink)) 25%, hsl(var(--warm-peach)) 75%, hsl(var(--background)) 100%);
+    --gradient-baby: linear-gradient(160deg, hsl(var(--mint-green)) 0%, hsl(var(--baby-blue)) 50%, hsl(var(--soft-lavender)) 100%);
+    --gradient-card: linear-gradient(140deg, hsl(var(--card)) 0%, hsl(var(--maternal-pink) / 0.3) 50%, hsl(var(--baby-blue) / 0.2) 100%);
 
-    /* Sombras acolhedoras */
-    --shadow-soft: 0 2px 20px -5px hsl(340 35% 75% / 0.15);
-    --shadow-card: 0 4px 25px -8px hsl(340 25% 65% / 0.12);
-    --shadow-floating: 0 8px 35px -10px hsl(340 30% 70% / 0.2);
+    /* Sombras etéreas e aconchegantes */
+    --shadow-soft: 0 8px 32px -8px hsl(var(--maternal-pink) / 0.4), 0 0 0 1px hsl(var(--maternal-pink) / 0.1);
+    --shadow-card: 0 12px 40px -12px hsl(var(--primary) / 0.2), 0 4px 16px -4px hsl(var(--soft-lavender) / 0.3);
+    --shadow-floating: 0 20px 60px -12px hsl(var(--primary) / 0.25), 0 8px 24px -8px hsl(var(--baby-blue) / 0.4);
+    --shadow-polaroid: 0 8px 24px -4px hsl(var(--maternal-pink) / 0.2), 0 16px 48px -12px hsl(var(--soft-lavender) / 0.15);
 
-    /* Animações suaves */
+    /* Transições suaves para interações delicadas */
     --transition-gentle: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-ethereal: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 
-    --radius: 1rem;
+    /* Tipografia maternal suave */
+    --font-heading: 'Inter', 'Nunito', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+
+    /* Raio de bordas mais arredondadas e aconchegantes */
+    --radius: 20px;
+    --radius-soft: 24px;
+    --radius-card: 28px;
 
     --sidebar-background: 0 0% 98%;
 

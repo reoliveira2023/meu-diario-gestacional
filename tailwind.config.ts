@@ -75,12 +75,14 @@ export default {
 			backgroundImage: {
 				'gradient-maternal': 'var(--gradient-maternal)',
 				'gradient-soft': 'var(--gradient-soft)',
-				'gradient-baby': 'var(--gradient-baby)'
+				'gradient-baby': 'var(--gradient-baby)',
+				'gradient-card': 'var(--gradient-card)'
 			},
 			boxShadow: {
 				'soft': 'var(--shadow-soft)',
 				'card': 'var(--shadow-card)',
-				'floating': 'var(--shadow-floating)'
+				'floating': 'var(--shadow-floating)',
+				'polaroid': 'var(--shadow-polaroid)'
 			},
 			transitionTimingFunction: {
 				'gentle': 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
@@ -92,7 +94,11 @@ export default {
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				'soft': 'var(--radius-soft)',
+				'card': 'var(--radius-card)',
+				'xl': '24px',
+				'2xl': '32px'
 			},
 			keyframes: {
 				'accordion-down': {
