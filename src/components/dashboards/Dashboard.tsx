@@ -1,6 +1,6 @@
 // src/components/dashboards/Dashboard.tsx
 import CountdownFromGestation from "./CountdownFromGestation";
-import RemindersCard from "./AgendaCard";
+import AgendaCard from "./AgendaCard";
 import GalleryCard from "./GalleryCard";
 
 export default function Dashboard() {
@@ -10,7 +10,7 @@ export default function Dashboard() {
         <CountdownFromGestation />
       </div>
       <div className="lg:col-span-1">
-        <RemindersCard />
+        <AgendaCard />
       </div>
       <div className="lg:col-span-1">
         <GalleryCard />

@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Clock, Trash2 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import CalendarAgenda from "@/components/CalendarAgenda"; // default import
+import { CalendarAgenda } from "@/components/CalendarAgenda"; // named import
 
 type Reminder = {
   id: string;

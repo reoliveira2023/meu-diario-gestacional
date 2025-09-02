@@ -10,7 +10,7 @@ import { ptBR } from "date-fns/locale";
 import { useGestation } from "@/hooks/useGestation";
 
 // 👇 troque RemindersCard por AgendaCard
-import AgendaCard from "@/components/dashboards/AgendaCard";
+import AgendaCard from "./AgendaCard";
 
 function toYMD(d: Date) {
   return [
