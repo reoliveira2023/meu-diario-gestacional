@@ -666,7 +666,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_rate_limit: {
+        Args: { max_per_hour: number; operation_type: string }
+        Returns: boolean
+      }
+      is_family_member_authorized: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
+      log_sensitive_access: {
+        Args: { accessed_data?: Json; action_type: string; table_name: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
