@@ -1,3 +1,4 @@
+// src/pages/Index.tsx  (trecho principal – página completa se quiser)
 import { useState, useEffect } from "react";
 import { MaternaHeader } from "@/components/MaternaHeader";
 import { MoodDiary } from "@/components/MoodDiary";
@@ -16,7 +17,7 @@ import { Heart, Camera, Stethoscope, Baby, LogOut, User, Bell } from "lucide-rea
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
-// ✅ importa explicitamente o novo componente
+// use o Dashboard que preferir
 import NewDashboard from "@/components/dashboards/NewDashboard";
 
 const Index = () => {
@@ -40,53 +41,55 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header com visual mais suave */}
-      <div className="bg-gradient-maternal px-2 sm:px-6 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <MaternaHeader />
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" className="text-white/90 text-xs sm:text-sm rounded-2xl hover:bg-white/10 backdrop-blur-sm">
-              <User className="h-4 w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline font-medium">{user.email?.split("@")[0]}</span>
-            </Button>
-            <Button variant="outline" size="sm" onClick={signOut} className="text-xs sm:text-sm rounded-2xl bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20">
-              <LogOut className="h-4 w-4 mr-1 sm:mr-2" />
-              Sair
-            </Button>
+      {/* Faixa superior com gradiente */}
+      <div className="bg-gradient-maternal">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-5 space-y-4">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <MaternaHeader />
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="text-white text-xs sm:text-sm">
+                <User className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{user.email?.split("@")[0]}</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={signOut} className="text-xs sm:text-sm">
+                <LogOut className="h-4 w-4 mr-1 sm:mr-2" />
+                Sair
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* Insights com design mais delicado */}
-        <div className="mb-8">
+          {/* Insights */}
           <DashboardInsights />
-        </div>
 
-        {/* Dashboard principal redesenhado */}
-        <NewDashboard />
+          {/* Topo com 3 colunas (Gestação | Agenda | Galeria) */}
+          <NewDashboard />
+        </div>
       </div>
 
-      <div className="px-2 sm:px-6 pb-24">
+      {/* Conteúdo com abas */}
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-8 pb-24">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8 bg-gradient-card/80 backdrop-blur-lg sticky top-4 z-10 rounded-3xl shadow-floating border-0 p-2">
-            <TabsTrigger value="home" className="flex flex-col gap-2 py-4 sm:py-5 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-soft transition-all duration-300" data-tab="home">
-              <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-xs font-medium">Início</span>
+          <TabsList className="grid w-full grid-cols-5 mb-6 bg-card/50 backdrop-blur-sm sticky top-4 z-10">
+            <TabsTrigger value="home" className="flex flex-col gap-1 py-2 sm:py-3" data-tab="home">
+              <Bell className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-xs">Início</span>
             </TabsTrigger>
-            <TabsTrigger value="diary" className="flex flex-col gap-2 py-4 sm:py-5 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-soft transition-all duration-300">
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-xs font-medium">Diário</span>
+            <TabsTrigger value="diary" className="flex flex-col gap-1 py-2 sm:py-3">
+              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-xs">Diário</span>
             </TabsTrigger>
-            <TabsTrigger value="medical" className="flex flex-col gap-2 py-4 sm:py-5 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-soft transition-all duration-300">
-              <Stethoscope className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-xs font-medium">Médico</span>
+            <TabsTrigger value="medical" className="flex flex-col gap-1 py-2 sm:py-3">
+              <Stethoscope className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-xs">Médico</span>
             </TabsTrigger>
-            <TabsTrigger value="photos" className="flex flex-col gap-2 py-4 sm:py-5 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-soft transition-all duration-300" data-tab="photos">
-              <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-xs font-medium">Fotos</span>
+            <TabsTrigger value="photos" className="flex flex-col gap-1 py-2 sm:py-3" data-tab="photos">
+              <Camera className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-xs">Fotos</span>
             </TabsTrigger>
-            <TabsTrigger value="more" className="flex flex-col gap-2 py-4 sm:py-5 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-soft transition-all duration-300">
-              <Baby className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-xs font-medium">Mais</span>
+            <TabsTrigger value="more" className="flex flex-col gap-1 py-2 sm:py-3">
+              <Baby className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-xs">Mais</span>
             </TabsTrigger>
           </TabsList>
 
