@@ -8,6 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CalendarAgenda } from "@/components/CalendarAgenda";
 
 /**
  * Card da Agenda para o topo do dashboard.
@@ -24,103 +25,103 @@ type Props = {
 
 export default function AgendaCard({ className, onOpenAgendaModal }: Props) {
   const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const [isAgendaOpen, setIsAgendaOpen] = React.useState(false);
 
-  // Função padrão caso onOpenAgendaModal não seja fornecida
+  // Função para abrir a agenda
   const handleOpenAgenda = () => {
     if (onOpenAgendaModal) {
       onOpenAgendaModal();
     } else {
-      // Implementação padrão - pode ser um modal simples ou navegação
-      console.log("Abrindo agenda...");
-      alert("Funcionalidade da agenda em desenvolvimento!");
+      setIsAgendaOpen(true);
     }
   };
 
   const handleAddEvent = () => {
-    if (onOpenAgendaModal) {
-      onOpenAgendaModal();
-    } else {
-      // Implementação padrão para adicionar evento
-      console.log("Adicionando evento para:", date);
-      alert(`Adicionar evento para ${date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : "data selecionada"}`);
-    }
+    setIsAgendaOpen(true);
   };
 
   return (
-    <Card
-      className={cn(
-        "h-full border-0 shadow-[var(--shadow-card)] rounded-2xl overflow-hidden bg-gradient-soft",
-        className
-      )}
-    >
-      <CardHeader className="pb-0">
-        <div>
-          <p className="text-xs text-muted-foreground">Compromissos e eventos</p>
-          <CardTitle className="text-foreground">Agenda e Calendário</CardTitle>
-        </div>
-      </CardHeader>
-
-      <CardContent className="pt-4">
-        {/* Bloco de Próximos eventos - agora ocupa toda a largura */}
-        <div className="rounded-xl bg-white/70 backdrop-blur-sm p-4 h-full flex flex-col">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-muted-foreground">
-              Próximos Eventos
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-primary"
-              onClick={handleOpenAgenda}
-            >
-              Ver Agenda
-            </Button>
+    <>
+      <Card
+        className={cn(
+          "h-full border-0 shadow-[var(--shadow-card)] rounded-2xl overflow-hidden bg-gradient-soft",
+          className
+        )}
+      >
+        <CardHeader className="pb-0">
+          <div>
+            <p className="text-xs text-muted-foreground">Compromissos e eventos</p>
+            <CardTitle className="text-foreground">Agenda e Calendário</CardTitle>
           </div>
+        </CardHeader>
 
-          {/* lista vazia (placeholder) — mantemos altura sem quebrar */}
-          <div className="flex-1 rounded-lg border border-border/50 bg-background/50 grid place-items-center text-center p-6">
-            <div className="text-sm text-muted-foreground">
-              Nenhum evento próximo
-              <div className="mt-1">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      size="sm"
-                      className="mt-2"
-                    >
-                      <CalendarIcon className="w-4 h-4 mr-2" />
-                      Adicionar evento
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="center">
-                    <div className="p-4">
-                      <div className="mb-3">
-                        <span className="text-sm font-medium">Selecione uma data</span>
+        <CardContent className="pt-4">
+          {/* Bloco de Próximos eventos - agora ocupa toda a largura */}
+          <div className="rounded-xl bg-white/70 backdrop-blur-sm p-4 h-full flex flex-col">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-muted-foreground">
+                Próximos Eventos
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-primary"
+                onClick={handleOpenAgenda}
+              >
+                Ver Agenda
+              </Button>
+            </div>
+
+            {/* lista vazia (placeholder) — mantemos altura sem quebrar */}
+            <div className="flex-1 rounded-lg border border-border/50 bg-background/50 grid place-items-center text-center p-6">
+              <div className="text-sm text-muted-foreground">
+                Nenhum evento próximo
+                <div className="mt-1">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        size="sm"
+                        className="mt-2"
+                      >
+                        <CalendarIcon className="w-4 h-4 mr-2" />
+                        Adicionar evento
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="center">
+                      <div className="p-4">
+                        <div className="mb-3">
+                          <span className="text-sm font-medium">Selecione uma data</span>
+                        </div>
+                        <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
+                          locale={ptBR}
+                          className="rounded-md border-0 w-full pointer-events-auto"
+                        />
+                        <div className="mt-3 pt-3 border-t">
+                          <Button 
+                            size="sm" 
+                            className="w-full"
+                            onClick={handleAddEvent}
+                          >
+                            Criar evento para {date ? format(date, "dd/MM", { locale: ptBR }) : "data selecionada"}
+                          </Button>
+                        </div>
                       </div>
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        locale={ptBR}
-                        className="rounded-md border-0 w-full pointer-events-auto"
-                      />
-                      <div className="mt-3 pt-3 border-t">
-                        <Button 
-                          size="sm" 
-                          className="w-full"
-                          onClick={handleAddEvent}
-                        >
-                          Criar evento para {date ? format(date, "dd/MM", { locale: ptBR }) : "data selecionada"}
-                        </Button>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      
+      <CalendarAgenda 
+        open={isAgendaOpen} 
+        onOpenChange={setIsAgendaOpen}
+      />
+    </>
   );
 }
