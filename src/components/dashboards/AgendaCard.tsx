@@ -25,6 +25,27 @@ type Props = {
 export default function AgendaCard({ className, onOpenAgendaModal }: Props) {
   const [date, setDate] = React.useState<Date | undefined>(new Date());
 
+  // Função padrão caso onOpenAgendaModal não seja fornecida
+  const handleOpenAgenda = () => {
+    if (onOpenAgendaModal) {
+      onOpenAgendaModal();
+    } else {
+      // Implementação padrão - pode ser um modal simples ou navegação
+      console.log("Abrindo agenda...");
+      alert("Funcionalidade da agenda em desenvolvimento!");
+    }
+  };
+
+  const handleAddEvent = () => {
+    if (onOpenAgendaModal) {
+      onOpenAgendaModal();
+    } else {
+      // Implementação padrão para adicionar evento
+      console.log("Adicionando evento para:", date);
+      alert(`Adicionar evento para ${date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : "data selecionada"}`);
+    }
+  };
+
   return (
     <Card
       className={cn(
@@ -33,51 +54,9 @@ export default function AgendaCard({ className, onOpenAgendaModal }: Props) {
       )}
     >
       <CardHeader className="pb-0">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs text-muted-foreground">Compromissos e eventos</p>
-            <CardTitle className="text-foreground">Agenda e Calendário</CardTitle>
-          </div>
-
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="whitespace-nowrap"
-                data-testid="btn-novo-evento"
-              >
-                <CalendarIcon className="w-4 h-4 mr-2" />
-                Novo Evento
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <div className="p-4">
-                <div className="mb-3">
-                  <span className="text-sm font-medium">Selecione uma data</span>
-                </div>
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  locale={ptBR}
-                  className="rounded-md border-0 w-full pointer-events-auto"
-                />
-                <div className="mt-3 pt-3 border-t">
-                  <Button 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => {
-                      // Aqui você pode implementar a lógica de criar evento
-                      onOpenAgendaModal?.();
-                    }}
-                  >
-                    Criar evento para {date ? format(date, "dd/MM", { locale: ptBR }) : "data selecionada"}
-                  </Button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+        <div>
+          <p className="text-xs text-muted-foreground">Compromissos e eventos</p>
+          <CardTitle className="text-foreground">Agenda e Calendário</CardTitle>
         </div>
       </CardHeader>
 
@@ -92,7 +71,7 @@ export default function AgendaCard({ className, onOpenAgendaModal }: Props) {
               variant="ghost"
               size="sm"
               className="text-muted-foreground hover:text-primary"
-              onClick={onOpenAgendaModal}
+              onClick={handleOpenAgenda}
             >
               Ver Agenda
             </Button>
@@ -103,13 +82,40 @@ export default function AgendaCard({ className, onOpenAgendaModal }: Props) {
             <div className="text-sm text-muted-foreground">
               Nenhum evento próximo
               <div className="mt-1">
-                <Button
-                  size="sm"
-                  onClick={onOpenAgendaModal}
-                  className="mt-2"
-                >
-                  Adicionar evento
-                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      size="sm"
+                      className="mt-2"
+                    >
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      Adicionar evento
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="center">
+                    <div className="p-4">
+                      <div className="mb-3">
+                        <span className="text-sm font-medium">Selecione uma data</span>
+                      </div>
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        locale={ptBR}
+                        className="rounded-md border-0 w-full pointer-events-auto"
+                      />
+                      <div className="mt-3 pt-3 border-t">
+                        <Button 
+                          size="sm" 
+                          className="w-full"
+                          onClick={handleAddEvent}
+                        >
+                          Criar evento para {date ? format(date, "dd/MM", { locale: ptBR }) : "data selecionada"}
+                        </Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </div>
