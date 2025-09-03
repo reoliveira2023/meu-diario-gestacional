@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -38,81 +39,77 @@ export default function AgendaCard({ className, onOpenAgendaModal }: Props) {
             <CardTitle className="text-foreground">Agenda e Calendário</CardTitle>
           </div>
 
-          <Button
-            size="sm"
-            variant="secondary"
-            className="whitespace-nowrap"
-            onClick={onOpenAgendaModal}
-            data-testid="btn-novo-evento"
-          >
-            <CalendarIcon className="w-4 h-4 mr-2" />
-            Novo Evento
-          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="whitespace-nowrap"
+                data-testid="btn-novo-evento"
+              >
+                <CalendarIcon className="w-4 h-4 mr-2" />
+                Novo Evento
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <div className="p-4">
+                <div className="mb-3">
+                  <span className="text-sm font-medium">Selecione uma data</span>
+                </div>
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  locale={ptBR}
+                  className="rounded-md border-0 w-full pointer-events-auto"
+                />
+                <div className="mt-3 pt-3 border-t">
+                  <Button 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => {
+                      // Aqui você pode implementar a lógica de criar evento
+                      onOpenAgendaModal?.();
+                    }}
+                  >
+                    Criar evento para {date ? format(date, "dd/MM", { locale: ptBR }) : "data selecionada"}
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </CardHeader>
 
       <CardContent className="pt-4">
-        {/* grid que NUNCA estoura: duas colunas no md+ e uma no mobile */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
-          {/* Bloco do Calendário */}
-          <div className="rounded-xl bg-white/70 backdrop-blur-sm p-4 h-full">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-muted-foreground">Calendário</span>
-              <span className="text-xs text-muted-foreground">
-                {date ? format(date, "EEEE, dd 'de' MMMM", { locale: ptBR }) : "\u00A0"}
-              </span>
-            </div>
-
-            {/* Calendar do shadcn é flexível; coloque SEM largura fixa */}
-            <div className="w-full">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                locale={ptBR}
-                className="rounded-md border-0 w-full"
-              />
-            </div>
-
-            <div className="mt-4 rounded-lg bg-muted/40 p-3">
-              <div className="text-sm font-medium mb-1">
-                Eventos – {date ? format(date, "dd 'de' MMMM", { locale: ptBR }) : ""}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Nenhum evento para esta data
-              </p>
-            </div>
+        {/* Bloco de Próximos eventos - agora ocupa toda a largura */}
+        <div className="rounded-xl bg-white/70 backdrop-blur-sm p-4 h-full flex flex-col">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-muted-foreground">
+              Próximos Eventos
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-primary"
+              onClick={onOpenAgendaModal}
+            >
+              Ver Agenda
+            </Button>
           </div>
 
-          {/* Bloco de Próximos eventos */}
-          <div className="rounded-xl bg-white/70 backdrop-blur-sm p-4 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-muted-foreground">
-                Próximos Eventos
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-primary"
-                onClick={onOpenAgendaModal}
-              >
-                Ver Agenda
-              </Button>
-            </div>
-
-            {/* lista vazia (placeholder) — mantemos altura sem quebrar */}
-            <div className="flex-1 rounded-lg border border-border/50 bg-background/50 grid place-items-center text-center p-6">
-              <div className="text-sm text-muted-foreground">
-                Nenhum evento próximo
-                <div className="mt-1">
-                  <Button
-                    size="sm"
-                    onClick={onOpenAgendaModal}
-                    className="mt-2"
-                  >
-                    Adicionar evento
-                  </Button>
-                </div>
+          {/* lista vazia (placeholder) — mantemos altura sem quebrar */}
+          <div className="flex-1 rounded-lg border border-border/50 bg-background/50 grid place-items-center text-center p-6">
+            <div className="text-sm text-muted-foreground">
+              Nenhum evento próximo
+              <div className="mt-1">
+                <Button
+                  size="sm"
+                  onClick={onOpenAgendaModal}
+                  className="mt-2"
+                >
+                  Adicionar evento
+                </Button>
               </div>
             </div>
           </div>
