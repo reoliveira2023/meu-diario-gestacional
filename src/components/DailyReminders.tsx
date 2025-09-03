@@ -335,8 +335,6 @@ export const DailyReminders = () => {
           </div>
         )}
       </CardContent>
-
-      <CalendarAgenda open={showCalendarAgenda} onOpenChange={setShowCalendarAgenda} />
     </Card>
   );
 };
