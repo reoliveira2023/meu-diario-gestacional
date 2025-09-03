@@ -4,13 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Baby, Calendar, Images, Camera } from "lucide-react";
+import { Baby, Calendar, Clock, Images } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useGestation } from "@/hooks/useGestation";
-
-// 👇 troque RemindersCard por AgendaCard
-import AgendaCard from "./AgendaCard";
+import AgendaCard from "@/components/dashboards/AgendaCard";
 
 function toYMD(d: Date) {
   return [
@@ -59,175 +57,100 @@ export default function NewDashboard() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-      {/* ESQUERDA: Gestação - Card principal aconchegante */}
-      <Card className="lg:col-span-1 border-0 shadow-card bg-gradient-card backdrop-blur-sm rounded-card overflow-hidden group hover:shadow-floating transition-all duration-500">
-        <CardHeader className="pb-6 bg-gradient-to-br from-maternal-pink/30 via-soft-lavender/20 to-baby-blue/30">
-          <CardTitle className="flex items-center gap-3 text-lg font-[var(--font-heading)]">
-            <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Baby className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div className="text-primary font-semibold">Sua Gestação</div>
-              <div className="text-xs text-muted-foreground font-normal">Acompanhe cada momento</div>
-            </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      {/* ESQUERDA: Gestação */}
+      <Card className="lg:col-span-1 border-0 shadow-[var(--shadow-card)] bg-gradient-soft rounded-2xl">
+        <CardHeader className="pb-0">
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            <Baby className="w-5 h-5 text-primary" />
+            Semana Gestacional
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-8 p-8">
-          <div className="rounded-3xl bg-gradient-to-br from-white/80 via-maternal-pink/10 to-baby-blue/10 backdrop-blur-sm p-8 border border-white/20 shadow-soft">
-            <div className="text-center mb-6">
-              <div className="text-5xl font-bold bg-gradient-to-r from-primary via-maternal-pink to-soft-lavender bg-clip-text text-transparent mb-2">
-                {week || "—"}ª
-              </div>
-              <div className="text-lg font-medium text-primary mb-1">semana</div>
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-maternal-pink to-soft-lavender text-sm font-medium text-white shadow-soft">
-                {trimester}
+
+        <CardContent className="space-y-6 pt-4">
+          <div className="rounded-2xl bg-white/70 p-5 backdrop-blur-sm">
+            <div className="text-3xl font-bold text-primary">{week || "—"}ª semana</div>
+            <div className="text-sm text-muted-foreground">{trimester}</div>
+
+            <div className="mt-4">
+              <div className="text-xs text-muted-foreground mb-1">Data Provável do Parto</div>
+              <div className="text-lg font-semibold">
+                {due ? format(due, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "—"}
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2 font-medium">Data Provável do Parto</div>
-                <div className="text-xl font-bold text-primary">
-                  {due ? format(due, "dd 'de' MMMM", { locale: ptBR }) : "—"}
-                </div>
-                {due && (
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {format(due, "yyyy", { locale: ptBR })}
-                  </div>
-                )}
+            <div className="mt-5 space-y-2">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Progresso da gestação</span>
+                <span>{progressPct}%</span>
               </div>
-
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-muted-foreground">Progresso da gestação</span>
-                  <span className="text-sm font-bold text-primary">{progressPct}%</span>
-                </div>
-                <div className="relative">
-                  <div className="w-full h-4 bg-gradient-to-r from-muted/30 to-muted/50 rounded-full overflow-hidden shadow-inner">
-                    <div
-                      className="h-full bg-gradient-to-r from-maternal-pink via-primary to-soft-lavender transition-all duration-700 ease-out rounded-full shadow-soft"
-                      style={{ width: `${progressPct}%` }}
-                    />
-                  </div>
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-                </div>
-                <div className="text-center">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-sm font-medium text-primary">
-                    {daysRemaining} dias restantes ✨
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="w-full bg-gradient-to-r from-white via-maternal-pink/10 to-white border-maternal-pink/30 hover:border-primary/50 rounded-2xl py-6 shadow-soft hover:shadow-card transition-all duration-300" 
-                  data-testid="btn-editar-lmp"
-                >
-                  <Calendar className="w-5 h-5 mr-3 text-primary" />
-                  <div className="text-left">
-                    <div className="font-medium text-primary">
-                      {lmpYmd ? "Editar data da DUM" : "Definir data da DUM"}
-                    </div>
-                    {lmpYmd && (
-                      <div className="text-xs text-muted-foreground">
-                        {format(new Date(lmpYmd), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                      </div>
-                    )}
-                  </div>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-6 rounded-3xl border-0 shadow-floating bg-gradient-card backdrop-blur-lg" align="start">
-                <div className="text-base font-semibold mb-4 text-primary">Selecione a data da última menstruação</div>
-                <CalendarComponent
-                  mode="single"
-                  selected={tempDate}
-                  onSelect={(d) => setTempDate(d || undefined)}
-                  disabled={(d) => d > new Date()}
-                  initialFocus
-                  className="rounded-2xl"
+              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-2 bg-gradient-to-r from-pink-400 via-pink-500 to-purple-400 transition-all duration-500"
+                  style={{ width: `${progressPct}%` }}
                 />
-                <div className="mt-6 flex gap-3">
-                  <Button 
-                    size="sm" 
-                    onClick={handleSave} 
-                    disabled={!tempDate || saving}
-                    className="flex-1 rounded-2xl bg-gradient-to-r from-primary to-maternal-pink hover:from-primary/90 hover:to-maternal-pink/90 shadow-soft"
-                  >
-                    {saving ? "Salvando..." : "Salvar"}
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    onClick={() => setOpen(false)} 
-                    disabled={saving}
-                    className="rounded-2xl hover:bg-muted/50"
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-            {justSaved && (
-              <div className="text-center p-3 rounded-2xl bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200">
-                <span className="text-sm font-medium text-emerald-700">✨ Data salva com carinho!</span>
               </div>
-            )}
+              <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+                <Clock className="w-3.5 h-3.5" />
+                {daysRemaining} dias restantes
+              </div>
+            </div>
+
+            <div className="mt-5">
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="bg-white" data-testid="btn-editar-lmp">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    {lmpYmd
+                      ? `Editar data (${format(new Date(lmpYmd), "dd/MM/yyyy", { locale: ptBR })})`
+                      : "Definir data da última menstruação"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="start">
+                  <div className="text-sm font-medium mb-2">Selecione a data</div>
+                  <CalendarComponent
+                    mode="single"
+                    selected={tempDate}
+                    onSelect={(d) => setTempDate(d || undefined)}
+                    disabled={(d) => d > new Date()}
+                    initialFocus
+                  />
+                  <div className="mt-3 flex gap-2">
+                    <Button size="sm" onClick={handleSave} disabled={!tempDate || saving}>
+                      {saving ? "Salvando..." : "Salvar"}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={saving}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              {justSaved && (
+                <span className="ml-2 text-xs text-green-600">✅ Data salva com sucesso!</span>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* MEIO: Agenda com design mais suave */}
+      {/* MEIO: Agenda (sem lembretes) */}
       <div className="lg:col-span-1">
         <AgendaCard />
       </div>
 
-      {/* DIREITA: Galeria com estética polaroid */}
-      <Card className="lg:col-span-1 border-0 shadow-card bg-gradient-card rounded-card overflow-hidden hover:shadow-floating transition-all duration-500">
-        <CardHeader className="pb-6 bg-gradient-to-br from-mint-green/30 via-baby-blue/20 to-soft-lavender/30">
-          <CardTitle className="flex items-center gap-3 text-lg font-[var(--font-heading)]">
-            <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Images className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div className="text-primary font-semibold">Galeria de Momentos</div>
-              <div className="text-xs text-muted-foreground font-normal">Suas memórias especiais</div>
-            </div>
+      {/* DIREITA: Galeria (header limpo + espaço para thumbs/ações) */}
+      <Card className="lg:col-span-1 border-0 shadow-[var(--shadow-card)] rounded-2xl">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2">
+            <Images className="w-5 h-5 text-primary" />
+            Galeria de Momentos
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-8">
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              {/* Placeholders para fotos em formato polaroid */}
-              {[1, 2, 3, 4].map((i) => (
-                <div 
-                  key={i}
-                  className="aspect-square rounded-3xl bg-gradient-to-br from-white via-maternal-pink/10 to-baby-blue/10 border-2 border-white shadow-polaroid p-3 hover:shadow-floating transition-all duration-500 cursor-pointer group"
-                >
-                  <div className="w-full h-4/5 bg-gradient-to-br from-muted/20 to-muted/40 rounded-2xl mb-2 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                    <Camera className="w-6 h-6 text-muted-foreground/50" />
-                  </div>
-                  <div className="text-xs text-center text-muted-foreground font-medium">Momento {i}</div>
-                </div>
-              ))}
-            </div>
-            
-            <Button 
-              variant="outline" 
-              className="w-full rounded-2xl py-6 bg-gradient-to-r from-white via-mint-green/10 to-white border-mint-green/30 hover:border-primary/50 shadow-soft hover:shadow-card transition-all duration-300"
-            >
-              <Images className="w-5 h-5 mr-3 text-primary" />
-              <div className="text-left">
-                <div className="font-medium text-primary">Ver toda a galeria</div>
-                <div className="text-xs text-muted-foreground">Seus momentos especiais</div>
-              </div>
-            </Button>
-          </div>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Guarde seus momentos mais especiais durante a gestação 💕
+          </p>
+          {/* Dica: se quiser, renderize aqui 3–4 thumbnails recentes como preview */}
         </CardContent>
       </Card>
     </div>
