@@ -174,6 +174,48 @@ export type Database = {
         }
         Relationships: []
       }
+      family_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          invitation_token: string
+          invited_email: string
+          invited_name: string
+          inviter_id: string
+          phone: string | null
+          relationship: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invited_email: string
+          invited_name: string
+          inviter_id: string
+          phone?: string | null
+          relationship: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invited_email?: string
+          invited_name?: string
+          inviter_id?: string
+          phone?: string | null
+          relationship?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       family_members: {
         Row: {
           created_at: string
@@ -666,9 +708,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_verified_family_member: {
+        Args: { accept_invitation?: boolean; invitation_token_param: string }
+        Returns: Json
+      }
       check_rate_limit: {
         Args: { max_per_hour: number; operation_type: string }
         Returns: boolean
+      }
+      detect_suspicious_family_activity: {
+        Args: { user_id_param: string }
+        Returns: Json
+      }
+      get_family_members_masked: {
+        Args: { requesting_user_id: string }
+        Returns: {
+          created_at: string
+          email_masked: string
+          id: string
+          invitation_status: string
+          is_invited: boolean
+          name: string
+          phone_masked: string
+          relationship: string
+        }[]
       }
       is_family_member_authorized: {
         Args: { target_user_id: string }
