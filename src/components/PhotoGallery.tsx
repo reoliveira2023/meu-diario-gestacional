@@ -8,6 +8,7 @@ import { Camera, Image, Heart, Plus, Trash2, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { PhotoModal } from "./PhotoModal";
 
 interface Photo {
   id: string;
@@ -24,6 +25,8 @@ export const PhotoGallery = () => {
   const [loading, setLoading] = useState(false);
   const [uploadingType, setUploadingType] = useState<Photo['photo_type'] | null>(null);
   const [caption, setCaption] = useState("");
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number>(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -167,6 +170,19 @@ export const PhotoGallery = () => {
       case 'special': return 'Especial';
       default: return 'Foto';
     }
+  };
+
+  const handlePhotoClick = (index: number) => {
+    setSelectedPhotoIndex(index);
+    setIsModalOpen(true);
+  };
+
+  const handlePrevious = () => {
+    setSelectedPhotoIndex((prev) => (prev > 0 ? prev - 1 : photos.length - 1));
+  };
+
+  const handleNext = () => {
+    setSelectedPhotoIndex((prev) => (prev < photos.length - 1 ? prev + 1 : 0));
   };
 
   return (
@@ -350,13 +366,16 @@ export const PhotoGallery = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {photos.map((photo) => (
+            {photos.map((photo, index) => (
               <div key={photo.id} className="relative group">
-                <div className="aspect-square bg-gradient-soft rounded-xl overflow-hidden border">
+                <button
+                  onClick={() => handlePhotoClick(index)}
+                  className="aspect-square bg-gradient-soft rounded-xl overflow-hidden border w-full hover:border-primary/50 transition-colors"
+                >
                   <img
                     src={photo.url}
                     alt={photo.caption}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                   
                   {/* Overlay com informações */}
@@ -371,7 +390,10 @@ export const PhotoGallery = () => {
                         size="icon"
                         variant="ghost"
                         className="w-6 h-6 text-white hover:bg-red-500/20"
-                        onClick={() => handleDeletePhoto(photo.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePhoto(photo.id);
+                        }}
                       >
                         <Trash2 className="w-3 h-3" />
                       </Button>
@@ -384,11 +406,20 @@ export const PhotoGallery = () => {
                       </p>
                     </div>
                   </div>
-                </div>
+                </button>
               </div>
             ))}
           </div>
         )}
+
+        <PhotoModal
+          photos={photos}
+          currentPhotoIndex={selectedPhotoIndex}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onPrevious={photos.length > 1 ? handlePrevious : undefined}
+          onNext={photos.length > 1 ? handleNext : undefined}
+        />
       </CardContent>
     </Card>
   );

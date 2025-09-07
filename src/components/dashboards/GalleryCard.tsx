@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Images } from "lucide-react";
-import { PhotoGallery } from "@/components/PhotoGallery"; // <- export nomeado
+import { PhotoGalleryThumbnails } from "@/components/PhotoGalleryThumbnails";
 
 export default function GalleryCard() {
   return (
@@ -12,7 +12,7 @@ export default function GalleryCard() {
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
-        <PhotoGallery />
+        <PhotoGalleryThumbnails />
       </CardContent>
     </Card>
   );
