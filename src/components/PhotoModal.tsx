@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogClose, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -43,16 +43,19 @@ export const PhotoModal = ({
 
   const getTypeColor = (type: Photo['photo_type']) => {
     switch (type) {
-      case 'belly': return 'bg-maternal-pink/20 text-maternal-pink';
+      case 'belly': return 'bg-primary/20 text-primary';
       case 'ultrasound': return 'bg-maternal-blue/20 text-maternal-blue';
-      case 'special': return 'bg-maternal-mint/20 text-maternal-mint';
+      case 'special': return 'bg-accent/20 text-accent-foreground';
       default: return 'bg-muted text-muted-foreground';
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full p-0 bg-black/95 border-0">
+      <DialogContent className="max-w-4xl w-full p-0 bg-black/95 border-0" aria-describedby="photo-description">
+        <DialogDescription id="photo-description" className="sr-only">
+          Visualizando foto: {currentPhoto.caption}
+        </DialogDescription>
         <div className="relative">
           {/* Close button */}
           <DialogClose asChild>
