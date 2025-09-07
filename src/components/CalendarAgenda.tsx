@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plus, Clock, Heart, Camera, Scale, Stethoscope, RefreshCw, X } from "lucide-react";
+import { CalendarIcon, Plus, Clock, Heart, Camera, Scale, Stethoscope, RefreshCw, X, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { format, addDays, addWeeks, addMonths, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -50,6 +50,7 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [newEvent, setNewEvent] = useState({
     event_type: "appointment",
     title: "",
@@ -111,20 +112,38 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
     if (!user || !newEvent.title.trim()) return;
 
     try {
-      // Create single event in daily_reminders table
-      const { error } = await supabase
-        .from("daily_reminders")
-        .insert({
-          user_id: user.id,
-          title: newEvent.title,
-          description: newEvent.description,
-          reminder_date: newEvent.event_date,
-          scheduled_time: newEvent.scheduled_time,
-          reminder_type: newEvent.event_type,
-          is_completed: false
-        });
+      if (editingEvent) {
+        // Update existing event
+        const { error } = await supabase
+          .from("daily_reminders")
+          .update({
+            title: newEvent.title,
+            description: newEvent.description,
+            reminder_date: newEvent.event_date,
+            scheduled_time: newEvent.scheduled_time,
+            reminder_type: newEvent.event_type
+          })
+          .eq("id", editingEvent.id);
 
-      if (error) throw error;
+        if (error) throw error;
+        toast.success("Evento atualizado!");
+      } else {
+        // Create single event in daily_reminders table
+        const { error } = await supabase
+          .from("daily_reminders")
+          .insert({
+            user_id: user.id,
+            title: newEvent.title,
+            description: newEvent.description,
+            reminder_date: newEvent.event_date,
+            scheduled_time: newEvent.scheduled_time,
+            reminder_type: newEvent.event_type,
+            is_completed: false
+          });
+
+        if (error) throw error;
+        toast.success("Evento criado!");
+      }
 
       await fetchEvents();
       setNewEvent({
@@ -137,12 +156,27 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
         recurring_type: 'weekly',
         recurring_end_date: format(addMonths(new Date(), 3), "yyyy-MM-dd")
       });
+      setEditingEvent(null);
       setShowAddDialog(false);
-      toast.success("Evento criado!");
     } catch (error) {
-      console.error("Error creating event:", error);
-      toast.error("Erro ao criar evento");
+      console.error("Error creating/updating event:", error);
+      toast.error(editingEvent ? "Erro ao atualizar evento" : "Erro ao criar evento");
     }
+  };
+
+  const editEvent = (event: CalendarEvent) => {
+    setEditingEvent(event);
+    setNewEvent({
+      event_type: event.event_type,
+      title: event.title,
+      description: event.description || "",
+      event_date: event.event_date,
+      scheduled_time: event.scheduled_time,
+      is_recurring: event.is_recurring,
+      recurring_type: event.recurring_type || 'weekly',
+      recurring_end_date: event.recurring_end_date || format(addMonths(new Date(), 3), "yyyy-MM-dd")
+    });
+    setShowAddDialog(true);
   };
 
   const generateRecurringEvents = () => {
@@ -227,16 +261,18 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
               <h3 className="text-lg font-semibold">Calendário</h3>
               <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                 <DialogTrigger asChild>
-                  <Button size="sm">
+                  <Button size="sm" onClick={() => setEditingEvent(null)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Novo Evento
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Criar Novo Evento</DialogTitle>
+                    <DialogTitle>
+                      {editingEvent ? "Editar Evento" : "Criar Novo Evento"}
+                    </DialogTitle>
                     <DialogDescription>
-                      Adicione um evento ao seu calendário
+                      {editingEvent ? "Modifique os detalhes do evento" : "Adicione um evento ao seu calendário"}
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
@@ -353,7 +389,7 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
                     </div>
 
                     <Button onClick={createEvent} className="w-full">
-                      Criar Evento
+                      {editingEvent ? "Atualizar Evento" : "Criar Evento"}
                     </Button>
                   </div>
                 </DialogContent>
@@ -416,14 +452,24 @@ export const CalendarAgenda = ({ open, onOpenChange }: CalendarAgendaProps) => {
                                 </p>
                               )}
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deleteEvent(event.id)}
-                              className="text-muted-foreground hover:text-destructive h-auto p-1"
-                            >
-                              <X className="w-3 h-3" />
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => editEvent(event)}
+                                className="text-muted-foreground hover:text-primary h-auto p-1"
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteEvent(event.id)}
+                                className="text-muted-foreground hover:text-destructive h-auto p-1"
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
                           </div>
                         );
                       })}

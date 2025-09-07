@@ -4,11 +4,12 @@ import { cn } from "@/lib/utils";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Calendar as CalendarIcon, Clock, Heart, Camera, Scale, Stethoscope } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Heart, Camera, Scale, Stethoscope, Edit, Trash2, MoreVertical } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +43,7 @@ export default function AgendaCard({ className }: Props) {
   const [showEventDialog, setShowEventDialog] = React.useState(false);
   const [events, setEvents] = React.useState<Event[]>([]);
   const [loading, setLoading] = React.useState(false);
+  const [editingEvent, setEditingEvent] = React.useState<Event | null>(null);
   const [newEvent, setNewEvent] = React.useState({
     type: "appointment",
     title: "",
@@ -84,19 +86,38 @@ export default function AgendaCard({ className }: Props) {
     if (!user || !newEvent.title.trim()) return;
 
     try {
-      const { error } = await supabase
-        .from("daily_reminders")
-        .insert({
-          user_id: user.id,
-          title: newEvent.title,
-          description: newEvent.description,
-          reminder_date: newEvent.date,
-          scheduled_time: newEvent.time,
-          reminder_type: newEvent.type,
-          is_completed: false
-        });
+      if (editingEvent) {
+        // Update existing event
+        const { error } = await supabase
+          .from("daily_reminders")
+          .update({
+            title: newEvent.title,
+            description: newEvent.description,
+            reminder_date: newEvent.date,
+            scheduled_time: newEvent.time,
+            reminder_type: newEvent.type
+          })
+          .eq("id", editingEvent.id);
 
-      if (error) throw error;
+        if (error) throw error;
+        toast.success("Evento atualizado com sucesso!");
+      } else {
+        // Create new event
+        const { error } = await supabase
+          .from("daily_reminders")
+          .insert({
+            user_id: user.id,
+            title: newEvent.title,
+            description: newEvent.description,
+            reminder_date: newEvent.date,
+            scheduled_time: newEvent.time,
+            reminder_type: newEvent.type,
+            is_completed: false
+          });
+
+        if (error) throw error;
+        toast.success("Evento criado com sucesso!");
+      }
 
       await fetchUpcomingEvents();
       setNewEvent({
@@ -107,15 +128,56 @@ export default function AgendaCard({ className }: Props) {
         time: "09:00",
         location: ""
       });
+      setEditingEvent(null);
       setShowEventDialog(false);
-      toast.success("Evento criado com sucesso!");
     } catch (error) {
-      console.error("Error creating event:", error);
-      toast.error("Erro ao criar evento");
+      console.error("Error creating/updating event:", error);
+      toast.error(editingEvent ? "Erro ao atualizar evento" : "Erro ao criar evento");
     }
   };
 
+  const deleteEvent = async (eventId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from("daily_reminders")
+        .delete()
+        .eq("id", eventId);
+
+      if (error) throw error;
+
+      await fetchUpcomingEvents();
+      toast.success("Evento excluído com sucesso!");
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      toast.error("Erro ao excluir evento");
+    }
+  };
+
+  const editEvent = (event: Event) => {
+    setEditingEvent(event);
+    setNewEvent({
+      type: event.reminder_type,
+      title: event.title,
+      description: event.description || "",
+      date: event.reminder_date,
+      time: event.scheduled_time.slice(0, 5),
+      location: ""
+    });
+    setShowEventDialog(true);
+  };
+
   const handleAddEvent = () => {
+    setEditingEvent(null);
+    setNewEvent({
+      type: "appointment",
+      title: "",
+      description: "",
+      date: format(new Date(), "yyyy-MM-dd"),
+      time: "09:00",
+      location: ""
+    });
     setShowEventDialog(true);
   };
 
@@ -199,6 +261,26 @@ export default function AgendaCard({ className }: Props) {
                           </div>
                         )}
                       </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-auto p-1">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => editEvent(event)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => deleteEvent(event.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   );
                 })
@@ -212,7 +294,9 @@ export default function AgendaCard({ className }: Props) {
       <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Exames e Consultas</DialogTitle>
+            <DialogTitle>
+              {editingEvent ? "Editar Evento" : "Exames e Consultas"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -289,7 +373,7 @@ export default function AgendaCard({ className }: Props) {
             </div>
 
             <Button onClick={createEvent} className="w-full" disabled={!newEvent.title.trim()}>
-              Criar evento para {format(new Date(newEvent.date), "dd/MM", { locale: ptBR })}
+              {editingEvent ? "Atualizar evento" : `Criar evento para ${format(new Date(newEvent.date), "dd/MM", { locale: ptBR })}`}
             </Button>
           </div>
         </DialogContent>
