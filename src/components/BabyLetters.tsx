@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +8,8 @@ import { Mail, Heart, Plus, Edit, Trash2, Calendar, Baby } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface BabyLetter {
   id: string;
@@ -45,11 +47,47 @@ export const BabyLetters = () => {
     mood: '😊',
     isPrivate: true
   });
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      fetchLetters();
+    }
+  }, [user]);
+
+  const fetchLetters = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("baby_letters")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("letter_date", { ascending: false });
+
+      if (error) throw error;
+
+      const formattedLetters: BabyLetter[] = (data || []).map(letter => ({
+        id: letter.id,
+        title: letter.title,
+        content: letter.content,
+        week: 0, // baby_letters table doesn't have week field in your schema
+        date: new Date(letter.letter_date),
+        mood: '😊', // Default since not stored in DB
+        isPrivate: letter.is_private || false
+      }));
+
+      setLetters(formattedLetters);
+    } catch (error) {
+      console.error("Error fetching letters:", error);
+    }
+  };
 
   const moods = ['😊', '🥰', '😌', '😴', '😢', '😰', '🤗', '✨'];
 
-  const handleSaveLetter = () => {
+  const handleSaveLetter = async () => {
     if (!newLetter.title || !newLetter.content) {
       toast({
         title: "Campos obrigatórios",
@@ -59,39 +97,72 @@ export const BabyLetters = () => {
       return;
     }
 
-    const letter: BabyLetter = {
-      id: Date.now().toString(),
-      title: newLetter.title,
-      content: newLetter.content,
-      week: parseInt(newLetter.week) || 0,
-      mood: newLetter.mood,
-      isPrivate: newLetter.isPrivate,
-      date: new Date()
-    };
-
-    if (editingLetter) {
-      setLetters(prev => prev.map(l => l.id === editingLetter ? letter : l));
-      setEditingLetter(null);
+    if (!user) {
       toast({
-        title: "Carta atualizada! ✉️",
-        description: "Suas palavras foram salvas com carinho"
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para salvar cartas",
+        variant: "destructive"
       });
-    } else {
-      setLetters(prev => [...prev, letter]);
-      toast({
-        title: "Carta enviada ao coração! 💕",
-        description: "Uma nova mensagem para seu bebê"
-      });
+      return;
     }
 
-    setNewLetter({
-      title: '',
-      content: '',
-      week: '',
-      mood: '😊',
-      isPrivate: true
-    });
-    setIsWriting(false);
+    setIsLoading(true);
+
+    try {
+      const letterData = {
+        user_id: user.id,
+        title: newLetter.title,
+        content: newLetter.content,
+        is_private: newLetter.isPrivate,
+        letter_date: new Date().toISOString().split('T')[0]
+      };
+
+      if (editingLetter) {
+        const { error } = await supabase
+          .from("baby_letters")
+          .update(letterData)
+          .eq("id", editingLetter)
+          .eq("user_id", user.id);
+
+        if (error) throw error;
+
+        toast({
+          title: "Carta atualizada! ✉️",
+          description: "Suas palavras foram salvas com carinho"
+        });
+      } else {
+        const { error } = await supabase
+          .from("baby_letters")
+          .insert(letterData);
+
+        if (error) throw error;
+
+        toast({
+          title: "Carta enviada ao coração! 💕",
+          description: "Uma nova mensagem para seu bebê"
+        });
+      }
+
+      await fetchLetters();
+      setEditingLetter(null);
+      setNewLetter({
+        title: '',
+        content: '',
+        week: '',
+        mood: '😊',
+        isPrivate: true
+      });
+      setIsWriting(false);
+    } catch (error) {
+      console.error("Error saving letter:", error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar a carta. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEditLetter = (letter: BabyLetter) => {
@@ -106,12 +177,31 @@ export const BabyLetters = () => {
     setIsWriting(true);
   };
 
-  const handleDeleteLetter = (id: string) => {
-    setLetters(prev => prev.filter(l => l.id !== id));
-    toast({
-      title: "Carta excluída",
-      description: "A carta foi removida"
-    });
+  const handleDeleteLetter = async (id: string) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from("baby_letters")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      await fetchLetters();
+      toast({
+        title: "Carta excluída",
+        description: "A carta foi removida"
+      });
+    } catch (error) {
+      console.error("Error deleting letter:", error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a carta",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleUseTemplate = (template: any) => {
@@ -232,8 +322,12 @@ export const BabyLetters = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button onClick={handleSaveLetter} className="flex-1">
-                  {editingLetter ? 'Atualizar carta' : 'Enviar com amor'} 💕
+                <Button 
+                  onClick={handleSaveLetter} 
+                  disabled={isLoading || !user}
+                  className="flex-1"
+                >
+                  {isLoading ? "Salvando..." : editingLetter ? 'Atualizar carta' : 'Enviar com amor'} 💕
                 </Button>
                 <Button 
                   variant="outline" 

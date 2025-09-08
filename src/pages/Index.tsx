@@ -9,6 +9,7 @@ import { MedicalExamsTracker } from "@/components/MedicalExamsTracker";
 import { WeightChart } from "@/components/WeightChart";
 import { BabyNamesGenerator } from "@/components/BabyNamesGenerator";
 import { BabyLetters } from "@/components/BabyLetters";
+import { DiarySearch } from "@/components/DiarySearch";
 import { DashboardInsights } from "@/components/DashboardInsights";
 import FamilyManager from "@/components/FamilyManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -97,6 +98,7 @@ const Index = () => {
           <TabsContent value="diary" className="space-y-6">
             <MoodDiary />
             <BabyLetters />
+            <DiarySearch />
           </TabsContent>
           <TabsContent value="medical" className="space-y-6">
             <MedicalExamsTracker />
