@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Users, Plus, Trash2, Mail, Phone, UserPlus } from 'lucide-react';
+import { Users, Plus, Trash2, Mail, Phone, UserPlus, Send, Clock, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -79,26 +79,46 @@ export default function FamilyManager() {
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('family_members')
-        .insert([
-          {
-            user_id: user.id,
+      if (newMember.email) {
+        // Send invitation email instead of directly adding to family_members
+        const { data, error } = await supabase.functions.invoke('send-family-invitation', {
+          body: {
+            email: newMember.email,
             name: newMember.name,
             relationship: newMember.relationship,
-            email: newMember.email || null,
             phone: newMember.phone || null,
-            is_invited: !!newMember.email,
-            invited_at: newMember.email ? new Date().toISOString() : null,
+            message: `Olá ${newMember.name}! Gostaria que você acompanhasse minha jornada materna. Será uma alegria ter você por perto neste momento tão especial! 💕`
           }
-        ]);
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+        if (!data.success) throw new Error(data.error);
 
-      toast({
-        title: "Membro adicionado!",
-        description: `${newMember.name} foi adicionado à sua família.`,
-      });
+        toast({
+          title: "Convite enviado! 📧",
+          description: `Um convite foi enviado para ${newMember.email}. ${newMember.name} receberá um email para aceitar o convite.`,
+        });
+      } else {
+        // Add family member without invitation
+        const { error } = await supabase
+          .from('family_members')
+          .insert([
+            {
+              user_id: user.id,
+              name: newMember.name,
+              relationship: newMember.relationship,
+              phone: newMember.phone || null,
+              is_invited: false,
+            }
+          ]);
+
+        if (error) throw error;
+
+        toast({
+          title: "Membro adicionado!",
+          description: `${newMember.name} foi adicionado à sua família.`,
+        });
+      }
 
       setNewMember({ name: '', relationship: '', email: '', phone: '' });
       setIsAddingMember(false);
@@ -106,7 +126,7 @@ export default function FamilyManager() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Erro ao adicionar membro",
+        title: "Erro ao processar solicitação",
         description: error.message,
       });
     } finally {
@@ -208,14 +228,17 @@ export default function FamilyManager() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email (para convite)</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="email@exemplo.com"
+                  placeholder="email@exemplo.com (opcional)"
                   value={newMember.email}
                   onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Se informar o email, um convite será enviado para que a pessoa possa acessar o app como visualizador.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Telefone</Label>
@@ -229,7 +252,16 @@ export default function FamilyManager() {
             </div>
             <div className="flex gap-2">
               <Button onClick={handleAddMember} disabled={loading}>
-                {loading ? 'Adicionando...' : 'Adicionar Membro'}
+                {loading ? (
+                  newMember.email ? 'Enviando convite...' : 'Adicionando...'
+                ) : (
+                  newMember.email ? (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Enviar Convite
+                    </>
+                  ) : 'Adicionar Membro'
+                )}
               </Button>
               <Button 
                 variant="outline" 
@@ -265,9 +297,18 @@ export default function FamilyManager() {
                         {member.relationship}
                       </Badge>
                       {member.email && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1 text-xs">
                           <Mail className="h-3 w-3" />
                           <span>{member.email}</span>
+                          {member.joined_at ? (
+                            <span title="Convite aceito">
+                              <CheckCircle className="h-3 w-3 text-green-500 ml-1" />
+                            </span>
+                          ) : member.is_invited ? (
+                            <span title="Aguardando resposta">
+                              <Clock className="h-3 w-3 text-amber-500 ml-1" />
+                            </span>
+                          ) : null}
                         </div>
                       )}
                       {member.phone && (
