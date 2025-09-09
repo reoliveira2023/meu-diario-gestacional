@@ -180,6 +180,7 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          invitation_message: string | null
           invitation_token: string
           invited_email: string
           invited_name: string
@@ -193,6 +194,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          invitation_message?: string | null
           invitation_token?: string
           invited_email: string
           invited_name: string
@@ -206,6 +208,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          invitation_message?: string | null
           invitation_token?: string
           invited_email?: string
           invited_name?: string
@@ -740,6 +743,16 @@ export type Database = {
       log_sensitive_access: {
         Args: { accessed_data?: Json; action_type: string; table_name: string }
         Returns: undefined
+      }
+      send_family_invitation: {
+        Args: {
+          p_invited_email: string
+          p_invited_name: string
+          p_message?: string
+          p_phone?: string
+          p_relationship: string
+        }
+        Returns: Json
       }
     }
     Enums: {
