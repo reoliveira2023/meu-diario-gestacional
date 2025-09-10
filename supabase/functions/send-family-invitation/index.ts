@@ -24,22 +24,23 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
     // Get the authorization header and extract the JWT
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
       throw new Error('Missing authorization header');
     }
 
-    // Set the auth for the supabase client
-    supabase.auth.setSession({
-      access_token: authHeader.replace('Bearer ', ''),
-      refresh_token: ''
-    });
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
+      }
+    );
 
     const { email, name, relationship, phone, message }: InvitationRequest = await req.json();
 
