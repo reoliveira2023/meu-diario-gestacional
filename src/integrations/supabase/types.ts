@@ -723,6 +723,21 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: Json
       }
+      get_family_invitations_masked: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          accepted_at: string
+          created_at: string
+          email_masked: string
+          expires_at: string
+          id: string
+          invitation_message: string
+          invitation_token: string
+          invited_name: string
+          phone_masked: string
+          relationship: string
+        }[]
+      }
       get_family_members_masked: {
         Args: { requesting_user_id: string }
         Returns: {
@@ -733,6 +748,19 @@ export type Database = {
           is_invited: boolean
           name: string
           phone_masked: string
+          relationship: string
+        }[]
+      }
+      get_invitation_by_token: {
+        Args: { token_param: string }
+        Returns: {
+          created_at: string
+          expires_at: string
+          id: string
+          invitation_message: string
+          invited_email: string
+          invited_name: string
+          inviter_name: string
           relationship: string
         }[]
       }

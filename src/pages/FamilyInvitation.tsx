@@ -37,31 +37,28 @@ export default function FamilyInvitation() {
 
   const fetchInvitation = async () => {
     try {
-      // First get the invitation
+      // Use the new secure function to get invitation data
       const { data: invitationData, error: invitationError } = await supabase
-        .from('family_invitations')
-        .select('*')
-        .eq('invitation_token', token)
-        .gt('expires_at', new Date().toISOString())
-        .is('accepted_at', null)
-        .single();
+        .rpc('get_invitation_by_token', { token_param: token });
 
-      if (invitationError || !invitationData) {
+      if (invitationError || !invitationData || invitationData.length === 0) {
         console.error('Invitation not found:', invitationError);
         setStep('invalid');
         return;
       }
 
-      // Then get the inviter profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('user_id', invitationData.inviter_id)
-        .single();
-
-      setInvitation(invitationData);
-      setInviterName(profileData?.full_name || 'uma futura mamãe');
-      setFormData(prev => ({ ...prev, email: invitationData.invited_email }));
+      const invitation = invitationData[0];
+      setInvitation({
+        id: invitation.id,
+        invited_name: invitation.invited_name,
+        relationship: invitation.relationship,
+        invited_email: invitation.invited_email,
+        invitation_message: invitation.invitation_message,
+        created_at: invitation.created_at,
+        expires_at: invitation.expires_at
+      });
+      setInviterName(invitation.inviter_name || 'uma futura mamãe');
+      setFormData(prev => ({ ...prev, email: invitation.invited_email }));
       setStep('form');
     } catch (error) {
       console.error('Error fetching invitation:', error);
